@@ -1,0 +1,37 @@
+import apt
+import os
+import curl
+import xargs
+import sed
+import awk
+
+# builtin: os?, sed, awk, xargs, "apt"
+# Types: Command, string, int? , option?, result?, Dir?, bool?
+# unwrap sends to /dev/null ?
+# file type auto has cat, touch
+# directory type has mkdir, size, ls?
+# @os.path Dir type
+# try for result type?
+# @pkg.installed('nano'), @pkg.update(upgrade=true)
+# keywords bash + types?
+
+fun checkInstallation () {
+    if @apt.installed() {
+        apt install vim
+    }
+    file = @os.readfile('data.log')
+    if not file.exists() {
+        file.touch()
+    }
+    command: Command = @(psql -u root -p root)
+    if command.exists() {
+        command | grep -i psql | @sed.strip() | @sed.compile() | @awk.print()
+    }
+    url: string = "https://example.com/data"
+    data: Command! = @curl(url, follow_redirect=True, output="data.json").discard_err()
+}
+
+checkInstallation()
+
+# implement xargs package, parallel package, find, sed, awk 
+# wrapper around these components

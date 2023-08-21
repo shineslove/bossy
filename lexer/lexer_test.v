@@ -1,39 +1,26 @@
 module main
 
-enum TokenType {
-	assign
-	plus
-	lparen
-	rparen
-	lbrace
-	rbrace
-	comma
-	semicolon
-	eof
-}
-
-struct Token {
-	char_type    TokenType
-	char_literal string
-}
+import lexer
+import token as t
 
 fn test_next_token() {
 	input := '=+(){},;'
 	tests := [
-		Token{.assign, '='},
-		Token{.plus, '+'},
-		Token{.lparen, '('},
-		Token{.rparen, ')'},
-		Token{.lbrace, '{'},
-		Token{.rbrace, '}'},
-		Token{.comma, ','},
-		Token{.semicolon, ';'},
-		Token{.eof, ''},
+		t.Token.assign,
+		t.Token.plus,
+		t.Token.lparen,
+		t.Token.rparen,
+		t.Token.lbrace,
+		t.Token.rbrace,
+		t.Token.comma,
+		t.Token.semicolon,
+		t.Token.eof,
 	]
-	lex := Lexer(input)
+	mut lex := lexer.Lexer{
+		input: input
+	}
 	for typ in tests {
 		tok := lex.next_token()
-		assert tok.char_type == typ.char_type, 'test for type failed'
-		tok.char_literal == typ.char_literal, 'test for literal failed'
+		assert tok == typ , 'test for type failed'
 	}
 }

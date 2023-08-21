@@ -1,9 +1,11 @@
 module main
-
-struct Items {
-	base i32
-}
+import lexer { Lexer }
 
 fn main() {
-	// data := 'let x = 5 + 5;'
+	input := '=+(){},;'
+	mut l := Lexer{
+		input: input
+	}
+	l.read_char()
+	println(l)
 }

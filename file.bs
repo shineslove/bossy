@@ -1,11 +1,11 @@
-import apt
+import pkg
 import os
 import curl
 import xargs
 import sed
 import awk
 
-# builtin: os?, sed, awk, xargs, "apt"
+# builtin: os?, sed, awk, xargs, pkg
 # Types: Command, string, int? , option?, result?, Dir?, bool?
 # unwrap sends to /dev/null ?
 # file type auto has cat, touch
@@ -16,8 +16,9 @@ import awk
 # keywords bash + types?
 
 fun checkInstallation () {
-    if @apt.installed() {
-        apt install vim
+    vim = @pkg.installed('vim')
+    if vim is false {
+        vim.install()
     }
     file = @os.readfile('data.log')
     if not file.exists() {
@@ -28,7 +29,13 @@ fun checkInstallation () {
         command | grep -i psql | @sed.strip() | @sed.compile() | @awk.print()
     }
     url: string = "https://example.com/data"
-    data: Command! = @curl(url, follow_redirect=True, output="data.json").discard_err()
+    data: Command! = @curl(url, redirect=True, output="data.json").discard_err()
+
+    eof 'data.txt' {
+        "Here is the infomation that
+        you wanted after all."
+    }
+
 }
 
 checkInstallation()

@@ -11,6 +11,8 @@ fn test_next_token() {
     };
     let result = add(five,ten);
     '
+    l := Lexer {}
+	mut lex := l.new(input) 
 	tests := [
 		t.Token.let,
 		t.Token.ident,
@@ -50,8 +52,6 @@ fn test_next_token() {
 		t.Token.semicolon,
 		t.Token.eof,
 	]
-    l := Lexer {}
-	mut lex := l.new(input) 
 	for typ in tests {
 		tok := lex.next_token()
 		assert tok.@type == typ, 'test for type failed ${tok.value}'

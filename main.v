@@ -1,10 +1,10 @@
 module main
+
 import lexer { Lexer }
 
 fn main() {
 	input := '=+(){},;'
-	mut l := Lexer{
-		input: input
-	}
+    mut lex := Lexer {}
+	l := lex.new(input) 
 	println(l)
 }

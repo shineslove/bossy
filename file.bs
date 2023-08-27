@@ -14,19 +14,22 @@ import awk
 # try for result type?
 # @pkg.installed('nano'), @pkg.update(upgrade=true)
 # keywords bash + types?
+# @(commands..).or_exit()?
 
 fun checkInstallation () {
+    # can't assign bool
     vim = @pkg.installed('vim')
-    if vim is false {
+    # do this instead
+    if @pkg.installed('vim') {
         vim.install()
     }
     file = @os.readfile('data.log')
     if not file.exists() {
         file.touch()
     }
-    command: Command = @(psql -u root -p root)
+    command: Command = @(psql)
     if command.exists() {
-        command | grep -i psql | @sed.strip() | @sed.compile() | @awk.print()
+        command.add("-u root -p root") | grep -i psql | @sed.strip() | @sed.compile() | @awk.print()
     }
     url: string = "https://example.com/data"
     data: Command! = @curl(url, redirect=True, output="data.json").discard_err()

@@ -34,7 +34,7 @@ fn (mut lex Lexer) read_ident() string {
 	return lex.input[position..lex.position]
 }
 
-fn is_letter(ch byte) bool {
+fn is_letter(ch u8) bool {
 	return match ch {
 		`a`...`z` { true }
 		`A`...`Z` { true }
@@ -50,7 +50,7 @@ fn (mut lex Lexer) read_number() string {
 	return lex.input[position..lex.position]
 }
 
-fn is_digit(ch byte) bool {
+fn is_digit(ch u8) bool {
 	return match ch {
 		`0`...`9` { true }
 		else { false }
@@ -145,7 +145,7 @@ pub fn (mut lex Lexer) next_token() TokenType {
 			} else {
 				println('illegal is: ${lex.ch}')
 				TokenType{
-					value: lex.ch.str()
+					value: lex.ch.ascii_str()
 					@type: .illegal
 				}
 			}

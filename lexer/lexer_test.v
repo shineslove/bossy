@@ -1,7 +1,7 @@
 module main
 
 import lexer
-import token as t
+import lexer.token as t
 
 fn test_next_token() {
 	input := 'let five = 5;
@@ -12,8 +12,8 @@ fn test_next_token() {
     let result = add(five,ten);
     '
 	tests := [
-        t.Token.let,
-        t.Token.ident,
+		t.Token.let,
+		t.Token.ident,
 		t.Token.assign,
 		t.Token.integer,
 		t.Token.semicolon,
@@ -55,6 +55,6 @@ fn test_next_token() {
 	}
 	for typ in tests {
 		tok := lex.next_token()
-		assert tok == typ , 'test for type failed'
+		assert tok.@type == typ, 'test for type failed ${tok.value}'
 	}
 }

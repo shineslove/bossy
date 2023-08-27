@@ -6,6 +6,5 @@ fn main() {
 	mut l := Lexer{
 		input: input
 	}
-	l.read_char()
 	println(l)
 }

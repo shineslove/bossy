@@ -9,6 +9,16 @@ pub enum Token {
 	rbrace
 	comma
 	semicolon
+	let
+	integer
+	function
+	ident
 	eof
-    illegal
+	illegal
+}
+
+pub struct TokenType {
+pub:
+	value string
+	@type Token
 }

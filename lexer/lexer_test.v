@@ -50,7 +50,7 @@ fn test_next_token() {
 		t.Token.semicolon,
 		t.Token.eof,
 	]
-    mut l := Lexer {}
+    l := Lexer {}
 	mut lex := l.new(input) 
 	for typ in tests {
 		tok := lex.next_token()

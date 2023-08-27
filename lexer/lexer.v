@@ -10,8 +10,8 @@ mut:
 	ch            rune
 }
 
-pub fn (mut lex Lexer) new(input string) Lexer {
-    lex = Lexer { input: input }
+pub fn (l Lexer) new(input string) Lexer {
+    mut lex := Lexer { input: input }
     lex.read_char()
     return lex
 }

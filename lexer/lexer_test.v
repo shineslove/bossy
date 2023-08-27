@@ -1,6 +1,6 @@
 module main
 
-import lexer
+import lexer { Lexer }
 import lexer.token as t
 
 fn test_next_token() {
@@ -50,9 +50,8 @@ fn test_next_token() {
 		t.Token.semicolon,
 		t.Token.eof,
 	]
-	mut lex := lexer.Lexer{
-		input: input
-	}
+    mut l := Lexer {}
+	mut lex := l.new(input) 
 	for typ in tests {
 		tok := lex.next_token()
 		assert tok.@type == typ, 'test for type failed ${tok.value}'

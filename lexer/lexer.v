@@ -7,7 +7,7 @@ pub struct Lexer {
 mut:
 	position      int
 	read_position int
-	ch            u8
+	ch            rune
 }
 
 pub fn (mut lex Lexer) new(input string) Lexer {
@@ -34,7 +34,7 @@ fn (mut lex Lexer) read_ident() string {
 	return lex.input[position..lex.position]
 }
 
-fn is_letter(ch u8) bool {
+fn is_letter(ch rune) bool {
 	return match ch {
 		`a`...`z` { true }
 		`A`...`Z` { true }
@@ -50,7 +50,7 @@ fn (mut lex Lexer) read_number() string {
 	return lex.input[position..lex.position]
 }
 
-fn is_digit(ch u8) bool {
+fn is_digit(ch rune) bool {
 	return match ch {
 		`0`...`9` { true }
 		else { false }
@@ -58,59 +58,66 @@ fn is_digit(ch u8) bool {
 }
 
 pub fn (mut lex Lexer) skip_whitespace() {
-    println('char is: ${lex.ch.ascii_str()}')
-	for lex.ch.ascii_str().is_blank() {
+    println('char is: ${lex.ch.str().is_blank()}')
+	for lex.ch.str().is_blank() {
 		lex.read_char()
 	}
 }
 
 pub fn (mut lex Lexer) next_token() TokenType {
-    lex.read_char()
 	lex.skip_whitespace()
 	tok := match lex.ch {
 		`=` {
+            println('detected: ${lex.ch}')
 			TokenType{
 				value: '='
 				@type: .assign
 			}
 		}
 		`;` {
+            println('detected: ${lex.ch}')
 			TokenType{
 				value: ';'
 				@type: .semicolon
 			}
 		}
 		`(` {
+            println('detected: ${lex.ch}')
 			TokenType{
 				value: '('
 				@type: .lparen
 			}
 		}
 		`)` {
+            println('detected: ${lex.ch}')
 			TokenType{
 				value: ')'
 				@type: .rparen
 			}
 		}
 		`,` {
+            println('detected: ${lex.ch}')
 			TokenType{
 				value: ','
 				@type: .comma
 			}
 		}
 		`+` {
+            println('detected: ${lex.ch}')
 			TokenType{
 				value: '+'
 				@type: .plus
 			}
 		}
 		`{` {
+            println('detected: ${lex.ch}')
 			TokenType{
 				value: '{'
 				@type: .lbrace
 			}
 		}
 		`}` {
+            println('detected: ${lex.ch}')
 			TokenType{
 				value: '}'
 				@type: .rbrace
@@ -145,11 +152,12 @@ pub fn (mut lex Lexer) next_token() TokenType {
 			} else {
 				println('illegal is: ${lex.ch}')
 				TokenType{
-					value: lex.ch.ascii_str()
+					value: lex.ch.str()
 					@type: .illegal
 				}
 			}
 		}
 	}
+    lex.read_char()
 	return tok
 }

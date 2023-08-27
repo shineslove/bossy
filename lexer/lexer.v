@@ -58,7 +58,6 @@ fn is_digit(ch rune) bool {
 }
 
 pub fn (mut lex Lexer) skip_whitespace() {
-    println('char is: ${lex.ch.str().is_blank()}')
 	for lex.ch.str().is_blank() {
 		lex.read_char()
 	}
@@ -68,56 +67,48 @@ pub fn (mut lex Lexer) next_token() TokenType {
 	lex.skip_whitespace()
 	tok := match lex.ch {
 		`=` {
-            println('detected: ${lex.ch}')
 			TokenType{
 				value: '='
 				@type: .assign
 			}
 		}
 		`;` {
-            println('detected: ${lex.ch}')
 			TokenType{
 				value: ';'
 				@type: .semicolon
 			}
 		}
 		`(` {
-            println('detected: ${lex.ch}')
 			TokenType{
 				value: '('
 				@type: .lparen
 			}
 		}
 		`)` {
-            println('detected: ${lex.ch}')
 			TokenType{
 				value: ')'
 				@type: .rparen
 			}
 		}
 		`,` {
-            println('detected: ${lex.ch}')
 			TokenType{
 				value: ','
 				@type: .comma
 			}
 		}
 		`+` {
-            println('detected: ${lex.ch}')
 			TokenType{
 				value: '+'
 				@type: .plus
 			}
 		}
 		`{` {
-            println('detected: ${lex.ch}')
 			TokenType{
 				value: '{'
 				@type: .lbrace
 			}
 		}
 		`}` {
-            println('detected: ${lex.ch}')
 			TokenType{
 				value: '}'
 				@type: .rbrace
@@ -131,7 +122,6 @@ pub fn (mut lex Lexer) next_token() TokenType {
 		}
 		else {
 			if is_letter(lex.ch) {
-				println('letter is: ${lex.ch}')
 				literal := lex.read_ident()
 				tok_type := match literal {
 					'fn' { Token.function }
@@ -143,14 +133,12 @@ pub fn (mut lex Lexer) next_token() TokenType {
 					@type: tok_type
 				}
 			} else if is_digit(lex.ch) {
-				println('digit is: ${lex.ch}')
 				number := lex.read_number()
 				return TokenType{
 					value: number
 					@type: .integer
 				}
 			} else {
-				println('illegal is: ${lex.ch}')
 				TokenType{
 					value: lex.ch.str()
 					@type: .illegal

@@ -72,6 +72,14 @@ fn (lex Lexer) peek_char() ?rune {
 	return none
 }
 
+fn (mut lex Lexer) next() ?TokenType {
+    tok := lex.next_token()
+    if tok.@type == .eof {
+        return none
+    }
+    return tok
+}
+
 pub fn (mut lex Lexer) next_token() TokenType {
 	lex.skip_whitespace()
 	tok := match lex.ch {

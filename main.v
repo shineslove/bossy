@@ -6,5 +6,7 @@ fn main() {
 	input := '=+(){},;'
 	mut lex := Lexer{}
 	l := lex.new(input)
-	println(l)
+    for tok in l {
+        println(tok)
+    }
 }

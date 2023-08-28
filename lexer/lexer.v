@@ -11,12 +11,14 @@ mut:
 }
 
 pub fn (l Lexer) new(input string) Lexer {
-    mut lex := Lexer { input: input }
-    lex.read_char()
-    return lex
+	mut lex := Lexer{
+		input: input
+	}
+	lex.read_char()
+	return lex
 }
 
-pub fn (mut lex Lexer) read_char() {
+fn (mut lex Lexer) read_char() {
 	if lex.read_position >= lex.input.len {
 		lex.ch = 0
 	} else {
@@ -57,66 +59,131 @@ fn is_digit(ch rune) bool {
 	}
 }
 
-pub fn (mut lex Lexer) skip_whitespace() {
+fn (mut lex Lexer) skip_whitespace() {
 	for lex.ch.str().is_blank() {
 		lex.read_char()
 	}
+}
+
+fn (lex Lexer) peek_char() ?rune {
+	if !(lex.read_position >= lex.input.len) {
+		return lex.input[lex.read_position]
+	}
+	return none
 }
 
 pub fn (mut lex Lexer) next_token() TokenType {
 	lex.skip_whitespace()
 	tok := match lex.ch {
 		`=` {
-			TokenType{
-				value: '='
-				@type: .assign
+			next_char := lex.peek_char() or { ` ` }
+			if next_char == `=` {
+				line := lex.ch
+				lex.read_char()
+				literal := line + lex.ch
+				TokenType{
+					value: literal.str()
+					@type: .eq
+				}
+			} else {
+				TokenType{
+					value: lex.ch.str()
+					@type: .assign
+				}
 			}
 		}
 		`;` {
 			TokenType{
-				value: ';'
+				value: lex.ch.str()
 				@type: .semicolon
 			}
 		}
 		`(` {
 			TokenType{
-				value: '('
+				value: lex.ch.str()
 				@type: .lparen
 			}
 		}
 		`)` {
 			TokenType{
-				value: ')'
+				value: lex.ch.str()
 				@type: .rparen
 			}
 		}
 		`,` {
 			TokenType{
-				value: ','
+				value: lex.ch.str()
 				@type: .comma
 			}
 		}
 		`+` {
 			TokenType{
-				value: '+'
+				value: lex.ch.str()
 				@type: .plus
+			}
+		}
+		`-` {
+			TokenType{
+				value: lex.ch.str()
+				@type: .minus
+			}
+		}
+		`!` {
+			next_char := lex.peek_char() or { ` ` }
+			if next_char == `=` {
+				line := lex.ch
+				lex.read_char()
+				literal := line + lex.ch
+				TokenType{
+					value: literal.str()
+					@type: .not_eq
+				}
+			} else {
+				TokenType{
+					value: lex.ch.str()
+					@type: .bang
+				}
+			}
+		}
+		`/` {
+			TokenType{
+				value: lex.ch.str()
+				@type: .slash
+			}
+		}
+		`*` {
+			TokenType{
+				value: lex.ch.str()
+				@type: .asterisk
+			}
+		}
+		`<` {
+			TokenType{
+				value: lex.ch.str()
+				@type: .lt
+			}
+		}
+		`>` {
+			TokenType{
+				value: lex.ch.str()
+				@type: .gt
 			}
 		}
 		`{` {
 			TokenType{
-				value: '{'
+				value: lex.ch.str()
 				@type: .lbrace
 			}
 		}
 		`}` {
 			TokenType{
-				value: '}'
+				value: lex.ch.str()
 				@type: .rbrace
 			}
 		}
 		0 {
 			TokenType{
-				value: ''
+				value: lex.ch.str()
 				@type: .eof
 			}
 		}
@@ -126,6 +193,11 @@ pub fn (mut lex Lexer) next_token() TokenType {
 				tok_type := match literal {
 					'fn' { Token.function }
 					'let' { Token.let }
+					'true' { Token.@true }
+					'false' { Token.@false }
+					'if' { Token.@if }
+					'else' { Token.@else }
+					'return' { Token.@return }
 					else { Token.ident }
 				}
 				return TokenType{
@@ -146,6 +218,6 @@ pub fn (mut lex Lexer) next_token() TokenType {
 			}
 		}
 	}
-    lex.read_char()
+	lex.read_char()
 	return tok
 }

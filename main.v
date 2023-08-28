@@ -1,12 +1,11 @@
 module main
 
-import lexer { Lexer }
+import os
+import repl
 
 fn main() {
-	input := '=+(){},;'
-	mut lex := Lexer{}
-	l := lex.new(input)
-    for tok in l {
-        println(tok)
-    }
+    user := os.getenv("USER")
+    println('Hello there dear: ${user}')
+    println('Try out some commands boi!')
+    repl.start()
 }

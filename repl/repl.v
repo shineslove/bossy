@@ -1,20 +1,20 @@
 module repl
 
 import readline
-import lexer { Lexer }
+import lexer
 
+//R.E.P.L for outputting 'Monkey'
 pub fn start() {
-	mut lex := Lexer{}
-    prompt := ">> "
-    mut reader := readline.Readline{}
-    for {
-        input := reader.read_line(prompt) or { "" }
-        if input.is_blank() {
-            break
-        }
-        l := lex.new(input)
-        for tok in l {
-            println(tok)
-        }
-    }
+	prompt := '>> '
+	mut reader := readline.Readline{}
+	for {
+		input := reader.read_line(prompt) or { '' }
+		if input.is_blank() {
+			break
+		}
+		l := lexer.Lexer.new(input)
+		for tok in l {
+			println(tok)
+		}
+	}
 }

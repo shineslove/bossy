@@ -24,8 +24,7 @@ fn test_next_token() {
     10 == 10;
     10 != 9;
     '
-	l := Lexer{}
-	mut lex := l.new(input)
+	mut lex := Lexer.new(input)
 	tests := [
 		t.Token.let,
 		t.Token.ident,
@@ -92,14 +91,14 @@ fn test_next_token() {
 		t.Token.@false,
 		t.Token.semicolon,
 		t.Token.rbrace,
-        t.Token.integer,
-        t.Token.eq,
-        t.Token.integer,
-        t.Token.semicolon,
-        t.Token.integer,
-        t.Token.not_eq,
-        t.Token.integer,
-        t.Token.semicolon,
+		t.Token.integer,
+		t.Token.eq,
+		t.Token.integer,
+		t.Token.semicolon,
+		t.Token.integer,
+		t.Token.not_eq,
+		t.Token.integer,
+		t.Token.semicolon,
 	]
 	for typ in tests {
 		tok := lex.next_token()

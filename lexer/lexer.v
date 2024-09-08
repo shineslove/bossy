@@ -10,7 +10,7 @@ mut:
 	ch            rune
 }
 
-pub fn (l Lexer) new(input string) Lexer {
+pub fn Lexer.new(input string) Lexer {
 	mut lex := Lexer{
 		input: input
 	}
@@ -73,11 +73,11 @@ fn (lex Lexer) peek_char() ?rune {
 }
 
 fn (mut lex Lexer) next() ?TokenType {
-    tok := lex.next_token()
-    if tok.@type == .eof {
-        return none
-    }
-    return tok
+	tok := lex.next_token()
+	if tok.@type == .eof {
+		return none
+	}
+	return tok
 }
 
 pub fn (mut lex Lexer) next_token() TokenType {

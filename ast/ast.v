@@ -2,12 +2,13 @@ module ast
 
 import lexer.token
 
-pub type Statement = LetStatement | ReturnStatement
+pub type Statement = LetStatement | ReturnStatement | ExpresionStatement
 
 pub fn (st Statement) token_literal() string {
 	return match st {
 		LetStatement { st.token_literal() }
 		ReturnStatement { st.token_literal() }
+		ExpresionStatement { st.token_literal() }
 	}
 }
 
@@ -19,10 +20,22 @@ pub fn (rs ReturnStatement) token_literal() string {
 	return rs.token.value
 }
 
+pub fn (es ExpresionStatement) token_literal() string {
+	return es.token.value
+}
+
 pub struct ReturnStatement {
 pub:
 	token        token.TokenType
 	return_value Expression
+}
+
+type Expression = Identifier
+
+pub struct ExpresionStatement {
+pub:
+	token      token.TokenType
+	expression Expression
 }
 
 pub struct LetStatement {
@@ -32,8 +45,6 @@ pub:
 pub mut:
 	name Identifier
 }
-
-type Expression = Identifier
 
 pub fn (id Identifier) token_literal() string {
 	return id.token.value

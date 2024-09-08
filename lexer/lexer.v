@@ -88,9 +88,9 @@ pub fn (mut lex Lexer) next_token() TokenType {
 			if next_char == `=` {
 				line := lex.ch
 				lex.read_char()
-				literal := line + lex.ch
+				literal := '${line}${lex.ch}'
 				TokenType{
-					value: literal.str()
+					value: literal
 					@type: .eq
 				}
 			} else {
@@ -141,9 +141,9 @@ pub fn (mut lex Lexer) next_token() TokenType {
 			if next_char == `=` {
 				line := lex.ch
 				lex.read_char()
-				literal := line + lex.ch
+				literal := '${line}${lex.ch}'
 				TokenType{
-					value: literal.str()
+					value: literal
 					@type: .not_eq
 				}
 			} else {

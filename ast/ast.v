@@ -2,20 +2,27 @@ module ast
 
 import lexer.token
 
+pub type Statement = LetStatement | ReturnStatement
+
+pub fn (st Statement) token_literal() string {
+	return match st {
+		LetStatement { st.token_literal() }
+		ReturnStatement { st.token_literal() }
+	}
+}
+
 pub fn (ls LetStatement) token_literal() string {
 	return ls.token.value
 }
 
-pub fn (id Identifier) token_literal() string {
-	return id.token.value
+pub fn (rs ReturnStatement) token_literal() string {
+	return rs.token.value
 }
 
-type Expression = Identifier
-
-pub struct Identifier {
-pub mut:
-	token token.TokenType
-	value string
+pub struct ReturnStatement {
+pub:
+	token        token.TokenType
+	return_value Expression
 }
 
 pub struct LetStatement {
@@ -23,11 +30,20 @@ pub:
 	token token.TokenType
 	value Expression
 pub mut:
-	name  Identifier
+	name Identifier
 }
 
-// test if statement is expression
-pub type Statement = LetStatement
+type Expression = Identifier
+
+pub fn (id Identifier) token_literal() string {
+	return id.token.value
+}
+
+pub struct Identifier {
+pub mut:
+	token token.TokenType
+	value string
+}
 
 pub struct Program {
 pub mut:
@@ -37,7 +53,7 @@ mut:
 }
 
 fn (mut prog Program) next() ?Statement {
-	if prog.idx >= prog.statements.len 	{
+	if prog.idx >= prog.statements.len {
 		return none
 	}
 	defer {

@@ -51,6 +51,7 @@ pub fn (mut p Parser) parse_program() ast.Program {
 fn (mut p Parser) parse_statement() ?ast.Statement {
 	return match p.curr_token.@type {
 		.let { p.parse_let_statement() }
+		.@return { p.parse_return_statement() }
 		else { none }
 	}
 }
@@ -69,6 +70,18 @@ fn (mut p Parser) parse_let_statement() ?ast.Statement {
 	if !p.expect_peek(token.Token.assign) {
 		return none
 	}
+	// TODO: skipping expressions for now
+	for !p.curr_token_is(token.Token.semicolon) {
+		p.next_token()
+	}
+	return stmt
+}
+
+fn (mut p Parser) parse_return_statement() ?ast.Statement {
+	mut stmt := ast.ReturnStatement{
+		token: p.curr_token
+	}
+	p.next_token()
 	// TODO: skipping expressions for now
 	for !p.curr_token_is(token.Token.semicolon) {
 		p.next_token()

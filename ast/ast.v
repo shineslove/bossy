@@ -5,29 +5,56 @@ import lexer.token
 pub type Statement = LetStatement | ReturnStatement | ExpresionStatement
 
 pub fn (st Statement) token_literal() string {
-	return match st {
-		LetStatement { st.token_literal() }
-		ReturnStatement { st.token_literal() }
-		ExpresionStatement { st.token_literal() }
-	}
+	return st.token_literal()
+}
+
+pub fn (st Statement) str() string {
+	return st.str()
 }
 
 pub fn (ls LetStatement) token_literal() string {
 	return ls.token.value
 }
 
+pub fn (ls LetStatement) str() string {
+	mut output := ''
+	output += '${ls.token_literal()} ${ls.name} = '
+	if ls.value != none {
+		output += '${ls.value}'
+	}
+	output += ';'
+	return output
+}
+
 pub fn (rs ReturnStatement) token_literal() string {
 	return rs.token.value
+}
+
+pub fn (rs ReturnStatement) str() string {
+	mut output := ''
+	output += '${rs.token_literal()} '
+	if rs.return_value != none {
+		output += '${rs.return_value}'
+	}
+	output += ';'
+	return output
 }
 
 pub fn (es ExpresionStatement) token_literal() string {
 	return es.token.value
 }
 
+pub fn (es ExpresionStatement) str() string {
+	if es.expression != none {
+		return '${es.expression}'
+	}
+	return ''
+}
+
 pub struct ReturnStatement {
 pub:
 	token        token.TokenType
-	return_value Expression
+	return_value ?Expression
 }
 
 type Expression = Identifier
@@ -35,19 +62,23 @@ type Expression = Identifier
 pub struct ExpresionStatement {
 pub:
 	token      token.TokenType
-	expression Expression
+	expression ?Expression
 }
 
 pub struct LetStatement {
 pub:
 	token token.TokenType
-	value Expression
+	value ?Expression
 pub mut:
 	name Identifier
 }
 
 pub fn (id Identifier) token_literal() string {
 	return id.token.value
+}
+
+pub fn (id Identifier) str() string {
+	return '${id.value}'
 }
 
 pub struct Identifier {
@@ -78,4 +109,9 @@ fn (pro Program) token_literal() string {
 		return pro.statements[0].token_literal()
 	}
 	return ''
+}
+
+fn (pro Program) str() string {
+	mut output := ''
+	return output
 }

@@ -2,6 +2,7 @@ module ast
 
 import lexer.token
 
+// no match on str: made it segfault, too much recursions?  (no error)
 pub type Statement = LetStatement | ReturnStatement | ExpresionStatement
 
 pub fn (st Statement) token_literal() string {
@@ -9,7 +10,11 @@ pub fn (st Statement) token_literal() string {
 }
 
 pub fn (st Statement) str() string {
-	return st.str()
+	return match st {
+		LetStatement { st.str() }
+		ReturnStatement { st.str() }
+		ExpresionStatement { st.str() }
+	}
 }
 
 pub fn (ls LetStatement) token_literal() string {
@@ -19,8 +24,8 @@ pub fn (ls LetStatement) token_literal() string {
 pub fn (ls LetStatement) str() string {
 	mut output := ''
 	output += '${ls.token_literal()} ${ls.name} = '
-	if ls.value != none {
-		output += '${ls.value}'
+	if lv := ls.value {
+		output += '${lv}'
 	}
 	output += ';'
 	return output
@@ -33,8 +38,8 @@ pub fn (rs ReturnStatement) token_literal() string {
 pub fn (rs ReturnStatement) str() string {
 	mut output := ''
 	output += '${rs.token_literal()} '
-	if rs.return_value != none {
-		output += '${rs.return_value}'
+	if rv := rs.return_value {
+		output += '${rv}'
 	}
 	output += ';'
 	return output
@@ -45,8 +50,8 @@ pub fn (es ExpresionStatement) token_literal() string {
 }
 
 pub fn (es ExpresionStatement) str() string {
-	if es.expression != none {
-		return '${es.expression}'
+	if exp:= es.expression {
+		return '${exp}'
 	}
 	return ''
 }
@@ -113,5 +118,8 @@ fn (pro Program) token_literal() string {
 
 fn (pro Program) str() string {
 	mut output := ''
+	for stmt in pro.statements {
+		output += '${stmt.str()}'
+	}
 	return output
 }

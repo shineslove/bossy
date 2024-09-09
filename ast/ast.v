@@ -50,10 +50,7 @@ pub fn (es ExpresionStatement) token_literal() string {
 }
 
 pub fn (es ExpresionStatement) str() string {
-	if exp:= es.expression {
-		return '${exp}'
-	}
-	return ''
+	return '${es.expression}'
 }
 
 pub struct ReturnStatement {
@@ -62,12 +59,15 @@ pub:
 	return_value ?Expression
 }
 
-pub type Expression = Identifier
+// needed this to be a sum type so had to throw dummy data
+type Expression = Identifier | PlaceholderNode
+
+struct PlaceholderNode {}
 
 pub struct ExpresionStatement {
 pub:
 	token      token.TokenType
-	expression ?Expression
+	expression Expression
 }
 
 pub struct LetStatement {

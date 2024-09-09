@@ -14,21 +14,18 @@ mut:
 	curr_token         token.TokenType
 	peek_token         token.TokenType
 	errors             []string
-	prefix_parse_funcs map[string]map[token.Token]PrefixParseFunc
-	infix_parse_funcs  map[string]map[token.Token]InfixParseFunc
+	prefix_parse_funcs map[token.Token]PrefixParseFunc
+	infix_parse_funcs  map[token.Token]InfixParseFunc
 }
 
 // can't use TokenType as a key for maps
-pub fn (mut p Parser) register_prefix(tok token.TokenType, func PrefixParseFunc) {
-	p.prefix_parse_funcs[tok.value] = {
-		tok.@type: func
-	}
+// ended up not needed them, great...
+pub fn (mut p Parser) register_prefix(tok token.Token, func PrefixParseFunc) {
+	p.prefix_parse_funcs[tok] = func
 }
 
-pub fn (mut p Parser) register_infix(tok token.TokenType, func InfixParseFunc) {
-	p.infix_parse_funcs[tok.value] = {
-		tok.@type: func
-	}
+pub fn (mut p Parser) register_infix(tok token.Token, func InfixParseFunc) {
+	p.infix_parse_funcs[tok] = func
 }
 
 pub fn Parser.new(lex lexer.Lexer) Parser {

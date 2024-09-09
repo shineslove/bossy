@@ -3,7 +3,21 @@ module parser
 import ast
 import lexer
 
-fn test_return_statements() {	
+fn test_identifier_expressions() {
+	input := 'foobar;'
+	lex := lexer.Lexer.new(input)
+	mut par := Parser.new(lex)
+	prog := par.parse_program()
+	check_parser_errors(par)
+	assert prog.statements.len == 1, 'prog doesnt have 1 statement(s), got: ${prog.statements.len}'
+	stmt := prog.statements[0] as ast.ExpresionStatement
+	// options broke here and didn't show much
+	ident := stmt.expression as ast.Identifier
+	assert ident.value == 'foobar', 'didn\'t get foobar got ${ident.value}'
+	assert ident.token_literal() == 'foobar', 'didn\'t get foobar got ${ident.token_literal()}'
+}
+
+fn test_return_statements() {
 	input := '
 	return 5;
 	return 10;
@@ -16,7 +30,7 @@ fn test_return_statements() {
 	assert prog.statements.len == 3, 'prog doesnt have 3 statements'
 	for stmt in prog {
 		ret_stmt := stmt as ast.ReturnStatement
-		assert ret_stmt.token.@type == .@return,  '${stmt.token.@type} was not a return'
+		assert ret_stmt.token.@type == .@return, '${stmt.token.@type} was not a return'
 	}
 }
 

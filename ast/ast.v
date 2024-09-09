@@ -62,7 +62,7 @@ pub:
 	return_value ?Expression
 }
 
-type Expression = Identifier
+pub type Expression = Identifier
 
 pub struct ExpresionStatement {
 pub:

@@ -8,6 +8,18 @@ type PrefixParseFunc = fn () ast.Expression
 
 type InfixParseFunc = fn (ast.Expression) ast.Expression
 
+enum Precedence {
+	_
+	lowest
+	equals
+	less_greater
+	sum
+	product
+	prefix
+	call
+}
+
+@[heap]
 pub struct Parser {
 mut:
 	lex                lexer.Lexer
@@ -32,9 +44,22 @@ pub fn Parser.new(lex lexer.Lexer) Parser {
 	mut par := Parser{
 		lex: lex
 	}
+	par.prefix_parse_funcs = map[token.Token]PrefixParseFunc{}
+	par.register_prefix(.ident, par.parse_identifier)
+	// had to add parser to heap after this one
+	par.register_prefix(.integer, par.parse_integer_literal)
+	par.register_prefix(.bang, par.parse_prefix_expression)
+	par.register_prefix(.minus, par.parse_prefix_expression)
 	par.next_token()
 	par.next_token()
 	return par
+}
+
+fn (p Parser) parse_identifier() ast.Expression {
+	return ast.Identifier{
+		token: p.curr_token
+		value: p.curr_token.value
+	}
 }
 
 pub fn (p Parser) errors() []string {
@@ -54,7 +79,7 @@ fn (mut p Parser) next_token() {
 pub fn (mut p Parser) parse_program() ast.Program {
 	mut program := ast.Program{}
 	program.statements = []ast.Statement{}
-	for p.curr_token.@type != .eof {
+	for !p.curr_token_is(.eof) {
 		stmt := p.parse_statement()
 		if stmt != none {
 			program.statements << stmt
@@ -68,7 +93,7 @@ fn (mut p Parser) parse_statement() ?ast.Statement {
 	return match p.curr_token.@type {
 		.let { p.parse_let_statement() }
 		.@return { p.parse_return_statement() }
-		else { none }
+		else { p.parse_expression_statement() }
 	}
 }
 
@@ -76,18 +101,18 @@ fn (mut p Parser) parse_let_statement() ?ast.Statement {
 	mut stmt := ast.LetStatement{
 		token: p.curr_token
 	}
-	if !p.expect_peek(token.Token.ident) {
+	if !p.expect_peek(.ident) {
 		return none
 	}
 	stmt.name = ast.Identifier{
 		token: p.curr_token
 		value: p.curr_token.value
 	}
-	if !p.expect_peek(token.Token.assign) {
+	if !p.expect_peek(.assign) {
 		return none
 	}
 	// TODO: skipping expressions for now
-	for !p.curr_token_is(token.Token.semicolon) {
+	for !p.curr_token_is(.semicolon) {
 		p.next_token()
 	}
 	return stmt
@@ -99,10 +124,57 @@ fn (mut p Parser) parse_return_statement() ?ast.Statement {
 	}
 	p.next_token()
 	// TODO: skipping expressions for now
-	for !p.curr_token_is(token.Token.semicolon) {
+	for !p.curr_token_is(.semicolon) {
 		p.next_token()
 	}
 	return stmt
+}
+
+fn (mut p Parser) parse_expression_statement() ast.Statement {
+	println('me too')
+	mut stmt := ast.ExpressionStatement{
+		token: p.curr_token
+	}
+	stmt.expression = p.parse_expression(.lowest) or { panic('shouldnt exp failed here?') }
+	if p.peek_token_is(.semicolon) {
+		println('fired off')
+		p.next_token()
+	}
+	return stmt
+}
+
+fn (mut p Parser) parse_expression(precedence Precedence) ?ast.Expression {
+	prefix := p.prefix_parse_funcs[p.curr_token.@type] or {
+		p.errors << 'no prefix parse func for ${p.curr_token.@type} found'
+		return none
+	}
+	println('called')
+	println('${p.curr_token}')
+	println('${p.peek_token}')
+	left_exp := prefix()
+	return left_exp
+}
+
+fn (mut p Parser) parse_prefix_expression() ast.Expression {
+	mut expression := ast.PrefixExpression{
+		token:    p.curr_token
+		operator: p.curr_token.value
+	}
+	p.next_token()
+	// original didn't handle nil expection
+	expression.right = p.parse_expression(.prefix) or {
+		panic("shouldn't happen?: errors -> ${p.errors}")
+	}
+	return expression
+}
+
+fn (mut p Parser) parse_integer_literal() ast.Expression {
+	mut lit := ast.IntegerLiteral{
+		token: p.curr_token
+	}
+	value := p.curr_token.value.int()
+	lit.value = value
+	return lit
 }
 
 fn (p Parser) curr_token_is(tok token.Token) bool {
@@ -120,4 +192,8 @@ fn (mut p Parser) expect_peek(tok token.Token) bool {
 			false
 		}
 	}
+}
+
+fn (p Parser) peek_token_is(tok token.Token) bool {
+	return p.peek_token.@type == tok
 }

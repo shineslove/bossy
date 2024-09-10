@@ -3,7 +3,7 @@ module ast
 import lexer.token
 
 // no match on str: made it segfault, too much recursions?  (no error)
-pub type Statement = LetStatement | ReturnStatement | ExpresionStatement
+pub type Statement = LetStatement | ReturnStatement | ExpressionStatement
 
 pub fn (st Statement) token_literal() string {
 	return st.token_literal()
@@ -13,7 +13,7 @@ pub fn (st Statement) str() string {
 	return match st {
 		LetStatement { st.str() }
 		ReturnStatement { st.str() }
-		ExpresionStatement { st.str() }
+		ExpressionStatement { st.str() }
 	}
 }
 
@@ -45,12 +45,12 @@ pub fn (rs ReturnStatement) str() string {
 	return output
 }
 
-pub fn (es ExpresionStatement) token_literal() string {
+pub fn (es ExpressionStatement) token_literal() string {
 	return es.token.value
 }
 
-pub fn (es ExpresionStatement) str() string {
-	return '${es.expression}'
+pub fn (es ExpressionStatement) str() string {
+	return es.expression.str()
 }
 
 pub struct ReturnStatement {
@@ -59,14 +59,43 @@ pub:
 	return_value ?Expression
 }
 
-// needed this to be a sum type so had to throw dummy data
-type Expression = Identifier | PlaceholderNode
+type Expression = Identifier | IntegerLiteral | PrefixExpression
 
-struct PlaceholderNode {}
+pub fn (exp Expression) token_literal() string {
+	return match exp {
+		Identifier { exp.token_literal() }
+		IntegerLiteral { exp.token_literal() }
+		PrefixExpression { exp.token_literal() }
+	}
+}
 
-pub struct ExpresionStatement {
+pub fn (exp Expression) str() string {
+	return match exp {
+		Identifier { 'Iden${exp.str()}' }
+		IntegerLiteral { 'Integer${exp.str()}' }
+		PrefixExpression { 'Prefix${exp.str()}' }
+	}
+}
+
+pub struct IntegerLiteral {
 pub:
-	token      token.TokenType
+	token token.TokenType
+pub mut:
+	value int
+}
+
+pub struct PrefixExpression {
+pub:
+	token token.TokenType
+pub mut:
+	operator string
+	right    Expression
+}
+
+pub struct ExpressionStatement {
+pub:
+	token token.TokenType
+pub mut:
 	expression Expression
 }
 
@@ -84,6 +113,27 @@ pub fn (id Identifier) token_literal() string {
 
 pub fn (id Identifier) str() string {
 	return '${id.value}'
+}
+
+pub fn (il IntegerLiteral) token_literal() string {
+	return il.token.value
+}
+
+pub fn (il IntegerLiteral) str() string {
+	return il.token.value
+}
+
+pub fn (pe PrefixExpression) token_literal() string {
+	return pe.token.value
+}
+
+pub fn (pe PrefixExpression) str() string {
+	mut output := ''
+	output += '('
+	output += '${pe.operator}'
+	output += '${pe.right}'
+	output += ')'
+	return output
 }
 
 pub struct Identifier {

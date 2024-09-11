@@ -4,7 +4,7 @@ import lexer.token
 import lexer
 import ast
 
-const data_kun := map[string]token.TokenType{}
+const data_kun = map[string]token.TokenType{}
 
 type PrefixParseFunc = fn () ast.Expression
 
@@ -19,6 +19,17 @@ enum Precedence {
 	product
 	prefix
 	call
+}
+
+const precedences = {
+	token.Token.eq:       Precedence.equals
+	token.Token.not_eq:   Precedence.equals
+	token.Token.lt:       Precedence.less_greater
+	token.Token.gt:       Precedence.less_greater
+	token.Token.plus:     Precedence.sum
+	token.Token.minus:    Precedence.sum
+	token.Token.slash:    Precedence.product
+	token.Token.asterisk: Precedence.product
 }
 
 // adding this to the heap made it such that
@@ -37,8 +48,20 @@ mut:
 	infix_parse_funcs  map[token.Token]InfixParseFunc
 }
 
-// can't use TokenType as a key for maps
-// ended up not needed them, great...
+fn (p Parser) peek_precedence() Precedence {
+	if prec := precedences[p.peek_token.@type] {
+		return prec
+	}
+	return .lowest
+}
+
+fn (p Parser) curr_precedence() Precedence {
+	if prec := precedences[p.curr_token.@type] {
+		return prec
+	}
+	return .lowest
+}
+
 pub fn (mut p Parser) register_prefix(tok token.Token, func PrefixParseFunc) {
 	p.prefix_parse_funcs[tok] = func
 }
@@ -59,6 +82,15 @@ pub fn Parser.new(lex lexer.Lexer) Parser {
 	par.register_prefix(.integer, par.parse_integer_literal)
 	par.register_prefix(.bang, par.parse_prefix_expression)
 	par.register_prefix(.minus, par.parse_prefix_expression)
+	par.infix_parse_funcs = map[token.Token]InfixParseFunc{}
+	par.register_infix(.plus, par.parse_infix_expression)
+	par.register_infix(.minus, par.parse_infix_expression)
+	par.register_infix(.slash, par.parse_infix_expression)
+	par.register_infix(.asterisk, par.parse_infix_expression)
+	par.register_infix(.eq, par.parse_infix_expression)
+	par.register_infix(.not_eq, par.parse_infix_expression)
+	par.register_infix(.lt, par.parse_infix_expression)
+	par.register_infix(.gt, par.parse_infix_expression)
 	return par
 }
 
@@ -107,7 +139,7 @@ fn (mut p Parser) parse_statement() ?ast.Statement {
 	return match p.curr_token.@type {
 		.let { p.parse_let_statement() }
 		.@return { p.parse_return_statement() }
-		else { p.parse_expression_statement('parse_state') }
+		else { p.parse_expression_statement() }
 	}
 }
 
@@ -144,23 +176,30 @@ fn (mut p Parser) parse_return_statement() ?ast.Statement {
 	return stmt
 }
 
-fn (mut p Parser) parse_expression_statement(from string) ast.Statement {
+fn (mut p Parser) parse_expression_statement() ast.Statement {
 	mut stmt := ast.ExpressionStatement{
 		token: p.curr_token
 	}
-	stmt.expression = p.parse_expression() or {ast.Expression{}}
+	stmt.expression = p.parse_expression(.lowest) or { ast.Expression{} }
 	if p.peek_token_is(.semicolon) {
 		p.next_token()
 	}
 	return stmt
 }
 
-fn (mut p Parser) parse_expression() ?ast.Expression {
+fn (mut p Parser) parse_expression(precedence Precedence) ?ast.Expression {
 	prefix := p.prefix_parse_funcs[p.curr_token.@type] or {
 		p.errors << 'no prefix parse func for ${p.curr_token.@type} found'
 		return none
 	}
-	left_exp := prefix()
+	mut left_exp := prefix()
+	for !p.peek_token_is(.semicolon) && int(precedence) < int(p.peek_precedence()) {
+		infix := p.infix_parse_funcs[p.peek_token.@type] or {
+			return left_exp
+		}
+		p.next_token()
+		left_exp = infix(left_exp)
+	}
 	return left_exp
 }
 
@@ -171,7 +210,20 @@ fn (mut p Parser) parse_prefix_expression() ast.Expression {
 	}
 	p.next_token()
 	// original didn't handle nil expection
-	expression.right = p.parse_expression() or {ast.Expression{}}
+	expression.right = p.parse_expression(.prefix) or { ast.Expression{} }
+	return expression
+}
+
+fn (mut p Parser) parse_infix_expression(left ast.Expression) ast.Expression {
+	mut expression := ast.InfixExpression{
+		token:    p.curr_token
+		operator: p.curr_token.value
+		left:     left
+	}
+	precedence := p.curr_precedence()
+	p.next_token()
+	// original didn't handle nil expection
+	expression.right = p.parse_expression(precedence) or { ast.Expression{} }
 	return expression
 }
 

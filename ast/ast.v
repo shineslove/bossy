@@ -59,13 +59,14 @@ pub:
 	return_value ?Expression
 }
 
-pub type Expression = Identifier | IntegerLiteral | PrefixExpression
+pub type Expression = Identifier | IntegerLiteral | PrefixExpression | InfixExpression
 
 pub fn (exp Expression) token_literal() string {
 	return match exp {
 		Identifier { exp.token_literal() }
 		IntegerLiteral { exp.token_literal() }
 		PrefixExpression { exp.token_literal() }
+		InfixExpression { exp.token_literal() }
 	}
 }
 
@@ -74,6 +75,7 @@ pub fn (exp Expression) str() string {
 		Identifier { '${exp.str()}' }
 		IntegerLiteral { '${exp.str()}' }
 		PrefixExpression { '${exp.str()}' }
+		InfixExpression { '${exp.str()}' }
 	}
 }
 
@@ -82,6 +84,15 @@ pub:
 	token token.TokenType
 pub mut:
 	value int
+}
+
+pub struct InfixExpression {
+pub:
+	token token.TokenType
+pub mut:
+	left     Expression
+	operator string
+	right    Expression
 }
 
 pub struct PrefixExpression {
@@ -132,6 +143,20 @@ pub fn (pe PrefixExpression) str() string {
 	output += '('
 	output += '${pe.operator}'
 	output += '${pe.right}'
+	output += ')'
+	return output
+}
+
+pub fn (ie InfixExpression) token_literal() string {
+	return ie.token.value
+}
+
+pub fn (ie InfixExpression) str() string {
+	mut output := ''
+	output += '('
+	output += '${ie.left}'
+	output += ' ${ie.operator} '
+	output += '${ie.right}'
 	output += ')'
 	return output
 }

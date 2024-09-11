@@ -28,6 +28,61 @@ fn test_parsing_prefix_expressions() {
 	}
 }
 
+fn test_parsing_infix_expressions() {
+	addition := {
+		'input':     '5 + 5;'
+		'operator':  '+'
+		'int_value': '5'
+	}
+	subtract := {
+		'input':     '5 - 5;'
+		'operator':  '-'
+		'int_value': '5'
+	}
+	multiply := {
+		'input':     '5 * 5;'
+		'operator':  '*'
+		'int_value': '5'
+	}
+	divide := {
+		'input':     '5 / 5;'
+		'operator':  '/'
+		'int_value': '5'
+	}
+	greater := {
+		'input':     '5 > 5;'
+		'operator':  '>'
+		'int_value': '5'
+	}
+	less := {
+		'input':     '5 < 5;'
+		'operator':  '<'
+		'int_value': '5'
+	}
+	equals := {
+		'input':     '5 == 5;'
+		'operator':  '=='
+		'int_value': '5'
+	}
+	not_equals := {
+		'input':     '5 != 5;'
+		'operator':  '!='
+		'int_value': '5'
+	}
+	inputs := [addition, subtract, multiply, divide, not_equals, equals, less, greater]
+	for tst in inputs {
+		lex := lexer.Lexer.new(tst['input'])
+		mut par := Parser.new(lex)
+		prog := par.parse_program()
+		check_parser_errors(par)
+		assert prog.statements.len == 1, 'prog doesnt have 1 statement(s), got: ${prog.statements.len} -> input: ${prog.statements}'
+		stmt := prog.statements[0] as ast.ExpressionStatement
+		exp := stmt.expression as ast.InfixExpression
+		assert exp.operator == tst['operator'], 'exp operator is not ${tst['operator']} but ${exp.operator}'
+		assert check_integer_literal(exp.right, tst['int_value'].int())
+	}
+}
+
 fn check_integer_literal(il ast.Expression, value int) bool {
 	integer := il as ast.IntegerLiteral
 	if integer.value != value {

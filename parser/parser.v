@@ -3,11 +3,10 @@ module parser
 import lexer.token
 import lexer
 import ast
-import time
 
 const data_kun := map[string]token.TokenType{}
 
-type PrefixParseFunc = fn (from string) ast.Expression
+type PrefixParseFunc = fn () ast.Expression
 
 type InfixParseFunc = fn (ast.Expression) ast.Expression
 
@@ -22,6 +21,11 @@ enum Precedence {
 	call
 }
 
+// adding this to the heap made it such that
+// when you try accessing this struct from multiple
+// places there is data inconsistencies
+// it seems data on the heap wasn't read and data
+// on the stack was used instead...
 @[heap]
 pub struct Parser {
 mut:
@@ -47,10 +51,10 @@ pub fn Parser.new(lex lexer.Lexer) Parser {
 	mut par := Parser{
 		lex: lex
 	}
-	par.next_token('init 1')
-	par.next_token('init 2')
+	par.next_token()
+	par.next_token()
 	par.prefix_parse_funcs = map[token.Token]PrefixParseFunc{}
-	// par.register_prefix(.ident, par.parse_identifier)
+	par.register_prefix(.ident, par.parse_identifier)
 	// had to add parser to heap after this one
 	par.register_prefix(.integer, par.parse_integer_literal)
 	par.register_prefix(.bang, par.parse_prefix_expression)
@@ -74,33 +78,28 @@ fn (mut p Parser) peek_error(tok token.Token) {
 	p.errors << msg
 }
 
-fn (mut p Parser) next_token(from string) {
-	println('before(${from}) | (${time.now().nanosecond}): curr -> ${p.curr_token} peek -> ${p.peek_token}')
+fn (mut p Parser) next_token() {
 	p.curr_token = p.peek_token
 	p.peek_token = p.lex.next_token()
 	unsafe {
 		data_kun['current'] = p.curr_token
 		data_kun['peek'] = p.peek_token
 	}
-	println('after(${from}) | (${time.now().nanosecond}): curr -> ${p.curr_token} peek -> ${p.peek_token}')
 }
 
 pub fn (mut p Parser) parse_program() ast.Program {
 	mut program := ast.Program{}
 	program.statements = []ast.Statement{}
 	for !p.peek_token_is(.eof) {
-		println('start of eof check loop in prog: (${time.now().nanosecond})')
 		stmt := p.parse_statement()
 		if stmt != none {
 			program.statements << stmt
-			println('from within none stmt check (${time.now().nanosecond}) -> ${p.curr_token}')
 			if p.curr_token != data_kun['current'] {
-				p.next_token('data-kun helped out')
+				p.next_token()
 			}
 		}
-		p.next_token('parse prog')
+		p.next_token()
 	}
-	println('end of eof check loop in prog')
 	return program
 }
 
@@ -128,7 +127,7 @@ fn (mut p Parser) parse_let_statement() ?ast.Statement {
 	}
 	// TODO: skipping expressions for now
 	for !p.curr_token_is(.semicolon) {
-		p.next_token('let semicolon check')
+		p.next_token()
 	}
 	return stmt
 }
@@ -137,54 +136,46 @@ fn (mut p Parser) parse_return_statement() ?ast.Statement {
 	mut stmt := ast.ReturnStatement{
 		token: p.curr_token
 	}
-	p.next_token('return statement')
+	p.next_token()
 	// TODO: skipping expressions for now
 	for !p.curr_token_is(.semicolon) {
-		p.next_token('return semi check')
+		p.next_token()
 	}
 	return stmt
 }
 
 fn (mut p Parser) parse_expression_statement(from string) ast.Statement {
-	println('start of parse exp from ${from}')
 	mut stmt := ast.ExpressionStatement{
 		token: p.curr_token
 	}
-	stmt.expression = p.parse_expression('parse exp STATEMENT')
+	stmt.expression = p.parse_expression() or {ast.Expression{}}
 	if p.peek_token_is(.semicolon) {
-		println('peek token check from ${from}')
-		p.next_token('exp semi check')
+		p.next_token()
 	}
 	return stmt
 }
 
-fn (mut p Parser) parse_expression(from string) ?ast.Expression {
+fn (mut p Parser) parse_expression() ?ast.Expression {
 	prefix := p.prefix_parse_funcs[p.curr_token.@type] or {
-		println('no prefix found for ${p.curr_token.@type}')
 		p.errors << 'no prefix parse func for ${p.curr_token.@type} found'
 		return none
 	}
-	println('calling of parse exp from: ${from}')
-	println('parse exp data (curr token) -> ${p.curr_token}')
-	println('parse exp data (peek token) -> ${p.peek_token}')
-	left_exp := prefix('parse exp')
+	left_exp := prefix()
 	return left_exp
 }
 
-fn (mut p Parser) parse_prefix_expression(from string) ast.Expression {
+fn (mut p Parser) parse_prefix_expression() ast.Expression {
 	mut expression := ast.PrefixExpression{
 		token:    p.curr_token
 		operator: p.curr_token.value
 	}
-	println('prefix called from ${from}')
-	p.next_token('prefix exp')
+	p.next_token()
 	// original didn't handle nil expection
-	expression.right = p.parse_expression('prefix exp')
+	expression.right = p.parse_expression() or {ast.Expression{}}
 	return expression
 }
 
-fn (mut p Parser) parse_integer_literal(from string) ast.Expression {
-	println('int lit called from: ${from}')
+fn (mut p Parser) parse_integer_literal() ast.Expression {
 	mut lit := ast.IntegerLiteral{
 		token: p.curr_token
 	}
@@ -200,7 +191,7 @@ fn (p Parser) curr_token_is(tok token.Token) bool {
 fn (mut p Parser) expect_peek(tok token.Token) bool {
 	return match p.peek_token.@type {
 		tok {
-			p.next_token('expect peek')
+			p.next_token()
 			true
 		}
 		else {

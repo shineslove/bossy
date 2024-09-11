@@ -19,7 +19,6 @@ fn test_parsing_prefix_expressions() {
 		lex := lexer.Lexer.new(tst['input'])
 		mut par := Parser.new(lex)
 		prog := par.parse_program()
-		// panic(prog)
 		check_parser_errors(par)
 		assert prog.statements.len == 1, 'prog doesnt have 1 statement(s), got: ${prog.statements.len} -> input: ${prog.statements}'
 		stmt := prog.statements[0] as ast.ExpressionStatement
@@ -31,11 +30,11 @@ fn test_parsing_prefix_expressions() {
 
 fn check_integer_literal(il ast.Expression, value int) bool {
 	integer := il as ast.IntegerLiteral
-	if integer.value == value {
+	if integer.value != value {
 		eprintln('int value was not expected ${value}, got: ${integer.value}')
 		return false
 	}
-	if integer.token_literal() == '${value}' {
+	if integer.token_literal() != '${value}' {
 		eprintln('token literal for it was not expected ${value}, got: ${integer.token_literal()}')
 		return false
 	}

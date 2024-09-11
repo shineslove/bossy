@@ -26,19 +26,20 @@ fn main() {
 		assert prog.statements.len == 1, 'prog doesnt have 1 statement(s), got: ${prog.statements.len} -> input: ${prog.statements}'
 		stmt := prog.statements[0] as ast.ExpressionStatement
 		println(stmt)
-		// exp := stmt.expression as ast.PrefixExpression
-		// assert exp.operator == tst['operator'], 'exp operator is not ${tst['operator']} but ${exp.operator}'
-		// assert check_integer_literal(exp.right, tst['int_value'].int())
+		exp := stmt.expression as ast.PrefixExpression
+		assert exp.operator == tst['operator'], 'exp operator is not ${tst['operator']} but ${exp.operator}'
+		assert check_integer_literal(exp.right, tst['int_value'].int())
 	}
 }
 
-fn check_integer_literal(il ?ast.Expression, value int) bool {
+fn check_integer_literal(il ast.Expression, value int) bool {
 	integer := il as ast.IntegerLiteral
-	if integer.value == value {
+	if integer.value != value {
 		eprintln('int value was not expected ${value}, got: ${integer.value}')
+		eprintln('int types are: ${typeof(value).name}, got: ${typeof(integer.value).name}')
 		return false
 	}
-	if integer.token_literal() == '${value}' {
+	if integer.token_literal() != '${value}' {
 		eprintln('token literal for it was not expected ${value}, got: ${integer.token_literal()}')
 		return false
 	}

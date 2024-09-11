@@ -71,9 +71,9 @@ pub fn (exp Expression) token_literal() string {
 
 pub fn (exp Expression) str() string {
 	return match exp {
-		Identifier { 'Iden${exp.str()}' }
-		IntegerLiteral { 'Integer${exp.str()}' }
-		PrefixExpression { 'Prefix${exp.str()}' }
+		Identifier { 'Ident(${exp.str()})' }
+		IntegerLiteral { 'Integer(${exp.str()})' }
+		PrefixExpression { 'Prefix(${exp.str()})' }
 	}
 }
 
@@ -89,14 +89,14 @@ pub:
 	token token.TokenType
 pub mut:
 	operator string
-	right    Expression
+	right    ?Expression
 }
 
 pub struct ExpressionStatement {
 pub:
 	token token.TokenType
 pub mut:
-	expression Expression
+	expression ?Expression
 }
 
 pub struct LetStatement {

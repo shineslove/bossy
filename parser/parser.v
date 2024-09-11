@@ -4,7 +4,7 @@ import lexer.token
 import lexer
 import ast
 
-const data_kun = map[string]token.TokenType{}
+// const data_kun = map[string]token.TokenType{}
 
 type PrefixParseFunc = fn () ast.Expression
 
@@ -32,11 +32,8 @@ const precedences = {
 	token.Token.asterisk: Precedence.product
 }
 
-// adding this to the heap made it such that
-// when you try accessing this struct from multiple
-// places there is data inconsistencies
-// it seems data on the heap wasn't read and data
-// on the stack was used instead...
+// should've read the docs, just needed to return a
+// reference during the new function
 @[heap]
 pub struct Parser {
 mut:
@@ -70,8 +67,8 @@ pub fn (mut p Parser) register_infix(tok token.Token, func InfixParseFunc) {
 	p.infix_parse_funcs[tok] = func
 }
 
-pub fn Parser.new(lex lexer.Lexer) Parser {
-	mut par := Parser{
+pub fn Parser.new(lex lexer.Lexer) &Parser {
+	mut par := &Parser{
 		lex: lex
 	}
 	par.next_token()
@@ -113,10 +110,6 @@ fn (mut p Parser) peek_error(tok token.Token) {
 fn (mut p Parser) next_token() {
 	p.curr_token = p.peek_token
 	p.peek_token = p.lex.next_token()
-	unsafe {
-		data_kun['current'] = p.curr_token
-		data_kun['peek'] = p.peek_token
-	}
 }
 
 pub fn (mut p Parser) parse_program() ast.Program {
@@ -126,9 +119,6 @@ pub fn (mut p Parser) parse_program() ast.Program {
 		stmt := p.parse_statement()
 		if stmt != none {
 			program.statements << stmt
-			if p.curr_token != data_kun['current'] {
-				p.next_token()
-			}
 		}
 		p.next_token()
 	}
@@ -194,9 +184,7 @@ fn (mut p Parser) parse_expression(precedence Precedence) ?ast.Expression {
 	}
 	mut left_exp := prefix()
 	for !p.peek_token_is(.semicolon) && int(precedence) < int(p.peek_precedence()) {
-		infix := p.infix_parse_funcs[p.peek_token.@type] or {
-			return left_exp
-		}
+		infix := p.infix_parse_funcs[p.peek_token.@type] or { return left_exp }
 		p.next_token()
 		left_exp = infix(left_exp)
 	}

@@ -97,10 +97,10 @@ pub mut:
 
 pub struct PrefixExpression {
 pub:
-	token token.TokenType
-pub mut:
+	token    token.TokenType
 	operator string
-	right    Expression
+pub mut:
+	right Expression
 }
 
 pub struct ExpressionStatement {
@@ -142,7 +142,7 @@ pub fn (pe PrefixExpression) str() string {
 	mut output := ''
 	output += '('
 	output += '${pe.operator}'
-	output += '${pe.right}'
+	output += '${pe.right.str()}'
 	output += ')'
 	return output
 }
@@ -154,9 +154,9 @@ pub fn (ie InfixExpression) token_literal() string {
 pub fn (ie InfixExpression) str() string {
 	mut output := ''
 	output += '('
-	output += '${ie.left}'
+	output += '${ie.left.str()}'
 	output += ' ${ie.operator} '
-	output += '${ie.right}'
+	output += '${ie.right.str()}'
 	output += ')'
 	return output
 }

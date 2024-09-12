@@ -68,6 +68,7 @@ pub fn (mut p Parser) register_infix(tok token.Token, func InfixParseFunc) {
 }
 
 pub fn Parser.new(lex lexer.Lexer) &Parser {
+	// TODO: look into match token func instead of map
 	mut par := &Parser{
 		lex: lex
 	}
@@ -91,7 +92,9 @@ pub fn Parser.new(lex lexer.Lexer) &Parser {
 	return par
 }
 
-fn (p Parser) parse_identifier() ast.Expression {
+// this caused me hours of pain, needed to be mut Parser
+// to get latest value...
+fn (mut p Parser) parse_identifier() ast.Expression {
 	return ast.Identifier{
 		token: p.curr_token
 		value: p.curr_token.value
@@ -170,17 +173,17 @@ fn (mut p Parser) parse_expression_statement() ast.Statement {
 	mut stmt := ast.ExpressionStatement{
 		token: p.curr_token
 	}
-	stmt.expression = p.parse_expression(.lowest) or { ast.Expression{} }
+	stmt.expression = p.parse_expression(.lowest)
 	if p.peek_token_is(.semicolon) {
 		p.next_token()
 	}
 	return stmt
 }
 
-fn (mut p Parser) parse_expression(precedence Precedence) ?ast.Expression {
+fn (mut p Parser) parse_expression(precedence Precedence) ast.Expression {
 	prefix := p.prefix_parse_funcs[p.curr_token.@type] or {
 		p.errors << 'no prefix parse func for ${p.curr_token.@type} found'
-		return none
+		return ast.Expression{}
 	}
 	mut left_exp := prefix()
 	for !p.peek_token_is(.semicolon) && int(precedence) < int(p.peek_precedence()) {
@@ -198,7 +201,7 @@ fn (mut p Parser) parse_prefix_expression() ast.Expression {
 	}
 	p.next_token()
 	// original didn't handle nil expection
-	expression.right = p.parse_expression(.prefix) or { ast.Expression{} }
+	expression.right = p.parse_expression(.prefix)
 	return expression
 }
 
@@ -211,7 +214,8 @@ fn (mut p Parser) parse_infix_expression(left ast.Expression) ast.Expression {
 	precedence := p.curr_precedence()
 	p.next_token()
 	// original didn't handle nil expection
-	expression.right = p.parse_expression(precedence) or { ast.Expression{} }
+	right := p.parse_expression(precedence)
+	expression.right = right
 	return expression
 }
 

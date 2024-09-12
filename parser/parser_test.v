@@ -3,6 +3,31 @@ module parser
 import ast
 import lexer
 
+fn test_operator_precedence_parsing() {
+	tsts := create_test_cases_operator_pred_parse([
+		// ['-a * b', '((-a) * b)'],
+		// ['!-a', '(!(-a))'],
+		['a + b + c', '((a + b) + c)'],
+		['a + b - c', '((a + b) - c)'],
+		['a * b * c', '((a * b) * c)'],
+		['a * b / c', '((a * b) / c)'],
+		['a + b / c', '(a + (b / c))'],
+		['a + b * c + d / e - f', '(((a + (b * c)) + (d / e)) - f)'],
+		['3 + 4; -5 * 5', '(3 + 4)((-5) * 5)'],
+		['5 > 4 == 3 < 4', '((5 > 4) == (3 < 4))'],
+		['5 < 4 != 3 > 4', '((5 < 4) != (3 > 4))'],
+		['3 + 4 * 5 == 3 * 1 + 4 * 5', '((3 + (4 * 5)) == ((3 * 1) + (4 * 5)))'],
+	])
+	for tst in tsts {
+		lex := lexer.Lexer.new(tst['input'])
+		mut par := Parser.new(lex)
+		prog := par.parse_program()
+		check_parser_errors(par)
+		actual := '${prog}'
+		assert actual == tst['expected'], "didn't get expected -> input [ ${tst['input']} ] : ${tst['expected']} got: ${actual} and statements: ${prog.statements}"
+	}
+}
+
 fn test_parsing_prefix_expressions() {
 	exclaim := {
 		'input':     '!5;'
@@ -28,7 +53,7 @@ fn test_parsing_prefix_expressions() {
 	}
 }
 
-fn no_test_parsing_infix_expressions() {
+fn test_parsing_infix_expressions() {
 	addition := {
 		'input':     '5 + 5;'
 		'operator':  '+'
@@ -83,7 +108,7 @@ fn no_test_parsing_infix_expressions() {
 	}
 }
 
-fn check_integer_literal(il ?ast.Expression, value int) bool {
+fn check_integer_literal(il ast.Expression, value int) bool {
 	integer := il as ast.IntegerLiteral
 	if integer.value != value {
 		eprintln('int value was not expected ${value}, got: ${integer.value}')
@@ -183,4 +208,16 @@ fn check_let_statement(stmt ast.Statement, name string) bool {
 		return false
 	}
 	return true
+}
+
+fn create_test_cases_operator_pred_parse(tsts [][]string) []map[string]string {
+	mut tst_cases := []map[string]string{}
+	for tst in tsts {
+		case := {
+			'input':    tst[0]
+			'expected': tst[1]
+		}
+		tst_cases << case
+	}
+	return tst_cases
 }

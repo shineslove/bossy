@@ -3,7 +3,13 @@ module parser
 import ast
 import lexer
 
-struct LocalData {
+struct PrefixTests {
+	input    string
+	operator string
+	value    LocalAny
+}
+
+struct InfixTests {
 	input    string
 	left     LocalAny
 	operator string
@@ -38,7 +44,7 @@ fn check_identifier(exp ast.Expression, value string) bool {
 fn check_boolean(exp ast.Expression, value bool) bool {
 	boolean := exp as ast.Boolean
 	assert boolean.value == value, 'ident value is not ${value} got: ${boolean.value}'
-	assert boolean.token_literal().str() == value.str(), 'ident token literal not ${value}, got: ${boolean.token_literal()}'
+	assert boolean.token_literal() == value.str(), 'ident token literal not ${value}, got: ${boolean.token_literal()}'
 	return true
 }
 
@@ -72,79 +78,103 @@ fn test_operator_precedence_parsing() {
 }
 
 fn test_parsing_prefix_expressions() {
-	exclaim := {
-		'input':     '!5;'
-		'operator':  '!'
-		'int_value': '5'
-	}
-	neg := {
-		'input':     '-15;'
-		'operator':  '-'
-		'int_value': '15'
-	}
-	inputs := [exclaim, neg]
+	inputs := [PrefixTests{
+		input:    '!5;'
+		operator: '!'
+		value:    5
+	}, PrefixTests{
+		input:    '-15;'
+		operator: '-'
+		value:    15
+	}, PrefixTests{
+		input:    '!true;'
+		operator: '!'
+		value:    true
+	}, PrefixTests{
+		input:    '!false;'
+		operator: '!'
+		value:    false
+	}]
 	for tst in inputs {
-		lex := lexer.Lexer.new(tst['input'])
+		lex := lexer.Lexer.new(tst.input)
 		mut par := Parser.new(lex)
 		prog := par.parse_program()
 		check_parser_errors(par)
 		assert prog.statements.len == 1, 'prog doesnt have 1 statement(s), got: ${prog.statements.len} -> input: ${prog.statements}'
 		stmt := prog.statements[0] as ast.ExpressionStatement
 		exp := stmt.expression as ast.PrefixExpression
-		assert exp.operator == tst['operator'], 'exp operator is not ${tst['operator']} but ${exp.operator}'
-		assert check_integer_literal(exp.right, tst['int_value'].int())
+		assert exp.operator == tst.operator, 'exp operator is not ${tst.operator} but ${exp.operator}'
+		assert literal_expression_test(exp.right, tst.value)
 	}
 }
 
 fn test_parsing_infix_expressions() {
 	inputs := [
-		LocalData{
+		InfixTests{
 			input:    '5 + 5;'
 			left:     5
 			operator: '+'
 			right:    5
 		},
-		LocalData{
+		InfixTests{
 			input:    '5 - 5;'
 			left:     5
 			operator: '-'
 			right:    5
 		},
-		LocalData{
+		InfixTests{
 			input:    '5 * 5;'
 			left:     5
 			operator: '*'
 			right:    5
 		},
-		LocalData{
+		InfixTests{
 			input:    '5 / 5;'
 			left:     5
 			operator: '/'
 			right:    5
 		},
-		LocalData{
+		InfixTests{
 			input:    '5 > 5;'
 			left:     5
 			operator: '>'
 			right:    5
 		},
-		LocalData{
+		InfixTests{
 			input:    '5 < 5;'
 			left:     5
 			operator: '<'
 			right:    5
 		},
-		LocalData{
+		InfixTests{
 			input:    '5 == 5;'
 			left:     5
 			operator: '=='
 			right:    5
 		},
-		LocalData{
+		InfixTests{
 			input:    '5 != 5;'
 			left:     5
 			operator: '!='
 			right:    5
+		},
+		InfixTests{
+			input:    'true == true'
+			left:     true
+			operator: '=='
+			right:    true
+		},
+		InfixTests{
+			input:    'true != false'
+			left:     true
+			operator: '!='
+			right:    false
+		},
+		InfixTests{
+			input:    'false == false'
+			left:     false
+			operator: '=='
+			right:    false
 		},
 	]
 	for tst in inputs {

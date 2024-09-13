@@ -81,6 +81,7 @@ pub fn Parser.new(lex lexer.Lexer) &Parser {
 	par.register_prefix(.@true, par.parse_boolean)
 	par.register_prefix(.@false, par.parse_boolean)
 	par.register_prefix(.lparen, par.parse_grouped_expression)
+	par.register_prefix(.@if, par.parse_if_expression)
 	par.infix_parse_funcs = map[token.Token]InfixParseFunc{}
 	par.register_infix(.plus, par.parse_infix_expression)
 	par.register_infix(.minus, par.parse_infix_expression)
@@ -93,6 +94,48 @@ pub fn Parser.new(lex lexer.Lexer) &Parser {
 	par.next_token()
 	par.next_token()
 	return par
+}
+
+fn (mut p Parser) parse_if_expression() ast.Expression {
+	mut exp := ast.IfExpression{
+		token: p.curr_token
+	}
+	if !p.expect_peek(.lparen) {
+		return ast.Expression{}
+	}
+	p.next_token()
+	exp.condition = p.parse_expression(.lowest)
+	if !p.expect_peek(.rparen) {
+		return ast.Expression{}
+	}
+	if !p.expect_peek(.lbrace) {
+		return ast.Expression{}
+	}
+	exp.consequence = p.parse_block_statement()
+	if p.peek_token_is(.@else) {
+		p.next_token()
+		if !p.expect_peek(.lbrace) {
+			return ast.Expression{}
+		}
+		exp.alternative = p.parse_block_statement()
+	}
+	return exp
+}
+
+fn (mut p Parser) parse_block_statement() ast.BlockStatement {
+	mut block := ast.BlockStatement{
+		token: p.curr_token
+	}
+	block.statements = []ast.Statement{}
+	p.next_token()
+	for !p.curr_token_is(.rbrace) && !p.curr_token_is(.eof) {
+		stmt := p.parse_statement()
+		if stmt != none {
+			block.statements << stmt
+		}
+		p.next_token()
+	}
+	return block
 }
 
 fn (mut p Parser) parse_grouped_expression() ast.Expression {

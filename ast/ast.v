@@ -74,9 +74,10 @@ pub fn (b Boolean) str() string {
 	return '${b.token.value}'
 }
 
-struct BlockStatement {
-	token token.TokenType
+pub struct BlockStatement {
 pub:
+	token token.TokenType
+pub mut:
 	statements []Statement
 }
 
@@ -94,10 +95,11 @@ fn (bs BlockStatement) str() string {
 
 pub struct IfExpression {
 pub:
-	token       token.TokenType
-	condition   Expression
-	consequence BlockStatement
+	token token.TokenType
+pub mut:
 	alternative ?BlockStatement
+	consequence BlockStatement
+	condition   Expression
 }
 
 fn (ie IfExpression) token_literal() string {

@@ -80,6 +80,7 @@ pub fn Parser.new(lex lexer.Lexer) &Parser {
 	par.register_prefix(.minus, par.parse_prefix_expression)
 	par.register_prefix(.@true, par.parse_boolean)
 	par.register_prefix(.@false, par.parse_boolean)
+	par.register_prefix(.lparen, par.parse_grouped_expression)
 	par.infix_parse_funcs = map[token.Token]InfixParseFunc{}
 	par.register_infix(.plus, par.parse_infix_expression)
 	par.register_infix(.minus, par.parse_infix_expression)
@@ -92,6 +93,15 @@ pub fn Parser.new(lex lexer.Lexer) &Parser {
 	par.next_token()
 	par.next_token()
 	return par
+}
+
+fn (mut p Parser) parse_grouped_expression() ast.Expression {
+	p.next_token()
+	exp := p.parse_expression(.lowest)
+	if !p.expect_peek(.rparen) {
+		return ast.Expression{}
+	}
+	return exp
 }
 
 fn (mut p Parser) parse_boolean() ast.Expression {

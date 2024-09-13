@@ -50,10 +50,6 @@ fn check_boolean(exp ast.Expression, value bool) bool {
 
 fn test_operator_precedence_parsing() {
 	tsts := create_test_cases_operator_pred_parse([
-		['true;', 'true'],
-		['false;', 'false'],
-		['3 > 5 == false', '((3 > 5) == false)'],
-		['3 < 5 == true', '((3 < 5) == true)'],
 		['-a * b', '((-a) * b)'],
 		['!-a', '(!(-a))'],
 		['a + b + c', '((a + b) + c)'],
@@ -66,6 +62,15 @@ fn test_operator_precedence_parsing() {
 		['5 > 4 == 3 < 4', '((5 > 4) == (3 < 4))'],
 		['5 < 4 != 3 > 4', '((5 < 4) != (3 > 4))'],
 		['3 + 4 * 5 == 3 * 1 + 4 * 5', '((3 + (4 * 5)) == ((3 * 1) + (4 * 5)))'],
+		['true;', 'true'],
+		['false;', 'false'],
+		['3 > 5 == false', '((3 > 5) == false)'],
+		['3 < 5 == true', '((3 < 5) == true)'],
+		['1 + (2 + 3) + 4', '((1 + (2 + 3)) + 4)'],
+		['(5 + 5) * 2', '((5 + 5) * 2)'],
+		['2 / (5 + 5)', '(2 / (5 + 5))'],
+		['-(5 + 5)', '(-(5 + 5))'],
+		['!(true == true)', '(!(true == true))'],
 	])
 	for tst in tsts {
 		lex := lexer.Lexer.new(tst['input'])

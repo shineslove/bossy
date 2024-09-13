@@ -3,10 +3,53 @@ module parser
 import ast
 import lexer
 
+struct LocalData {
+	input    string
+	left     LocalAny
+	operator string
+	right    LocalAny
+}
+
+type LocalAny = string | int | bool
+
+fn infix_expression_test(exp ast.Expression, left LocalAny, operator string, right LocalAny) bool {
+	op_exp := exp as ast.InfixExpression
+	assert literal_expression_test(op_exp.left, left)
+	assert op_exp.operator == operator, 'exp.oper is not ${op_exp.operator} got: ${operator}'
+	assert literal_expression_test(op_exp.right, right)
+	return true
+}
+
+fn literal_expression_test(exp ast.Expression, expected LocalAny) bool {
+	return match expected {
+		string { check_identifier(exp, expected) }
+		int { check_integer_literal(exp, expected) }
+		bool { check_boolean(exp, expected) }
+	}
+}
+
+fn check_identifier(exp ast.Expression, value string) bool {
+	ident := exp as ast.Identifier
+	assert ident.value == value, 'ident value is not ${value} got: ${ident.value}'
+	assert ident.token_literal() == value, 'ident token literal not ${value}, got: ${ident.token_literal()}'
+	return true
+}
+
+fn check_boolean(exp ast.Expression, value bool) bool {
+	boolean := exp as ast.Boolean
+	assert boolean.value == value, 'ident value is not ${value} got: ${boolean.value}'
+	assert boolean.token_literal().str() == value.str(), 'ident token literal not ${value}, got: ${boolean.token_literal()}'
+	return true
+}
+
 fn test_operator_precedence_parsing() {
 	tsts := create_test_cases_operator_pred_parse([
-		// ['-a * b', '((-a) * b)'],
-		// ['!-a', '(!(-a))'],
+		['true;', 'true'],
+		['false;', 'false'],
+		['3 > 5 == false', '((3 > 5) == false)'],
+		['3 < 5 == true', '((3 < 5) == true)'],
+		['-a * b', '((-a) * b)'],
+		['!-a', '(!(-a))'],
 		['a + b + c', '((a + b) + c)'],
 		['a + b - c', '((a + b) - c)'],
 		['a * b * c', '((a * b) * c)'],
@@ -54,57 +97,64 @@ fn test_parsing_prefix_expressions() {
 }
 
 fn test_parsing_infix_expressions() {
-	addition := {
-		'input':     '5 + 5;'
-		'operator':  '+'
-		'int_value': '5'
-	}
-	subtract := {
-		'input':     '5 - 5;'
-		'operator':  '-'
-		'int_value': '5'
-	}
-	multiply := {
-		'input':     '5 * 5;'
-		'operator':  '*'
-		'int_value': '5'
-	}
-	divide := {
-		'input':     '5 / 5;'
-		'operator':  '/'
-		'int_value': '5'
-	}
-	greater := {
-		'input':     '5 > 5;'
-		'operator':  '>'
-		'int_value': '5'
-	}
-	less := {
-		'input':     '5 < 5;'
-		'operator':  '<'
-		'int_value': '5'
-	}
-	equals := {
-		'input':     '5 == 5;'
-		'operator':  '=='
-		'int_value': '5'
-	}
-	not_equals := {
-		'input':     '5 != 5;'
-		'operator':  '!='
-		'int_value': '5'
-	}
-	inputs := [addition, subtract, multiply, divide, not_equals, equals, less, greater]
+	inputs := [
+		LocalData{
+			input:    '5 + 5;'
+			left:     5
+			operator: '+'
+			right:    5
+		},
+		LocalData{
+			input:    '5 - 5;'
+			left:     5
+			operator: '-'
+			right:    5
+		},
+		LocalData{
+			input:    '5 * 5;'
+			left:     5
+			operator: '*'
+			right:    5
+		},
+		LocalData{
+			input:    '5 / 5;'
+			left:     5
+			operator: '/'
+			right:    5
+		},
+		LocalData{
+			input:    '5 > 5;'
+			left:     5
+			operator: '>'
+			right:    5
+		},
+		LocalData{
+			input:    '5 < 5;'
+			left:     5
+			operator: '<'
+			right:    5
+		},
+		LocalData{
+			input:    '5 == 5;'
+			left:     5
+			operator: '=='
+			right:    5
+		},
+		LocalData{
+			input:    '5 != 5;'
+			left:     5
+			operator: '!='
+			right:    5
+		},
+	]
 	for tst in inputs {
-		lex := lexer.Lexer.new(tst['input'])
+		lex := lexer.Lexer.new(tst.input)
 		mut par := Parser.new(lex)
 		prog := par.parse_program()
 		check_parser_errors(par)
 		assert prog.statements.len == 1, 'prog doesnt have 1 statement(s), got: ${prog.statements.len} -> input: ${prog.statements}'
 		stmt := prog.statements[0] as ast.ExpressionStatement
-		exp := stmt.expression as ast.InfixExpression
-		assert exp.operator == tst['operator'], 'exp operator is not ${tst['operator']} but ${exp.operator}'
-		assert check_integer_literal(exp.right, tst['int_value'].int())
+		assert infix_expression_test(stmt.expression, tst.left, tst.operator, tst.right), 'values didnt match up'
 	}
 }
 
@@ -121,7 +171,7 @@ fn check_integer_literal(il ast.Expression, value int) bool {
 	return true
 }
 
-fn test_interger_literal_expression() {
+fn test_integer_literal_expression() {
 	input := '5;'
 	lex := lexer.Lexer.new(input)
 	mut par := Parser.new(lex)
@@ -129,9 +179,23 @@ fn test_interger_literal_expression() {
 	check_parser_errors(par)
 	assert prog.statements.len == 1, 'prog doesnt have 1 statement(s), got: ${prog.statements.len}'
 	stmt := prog.statements[0] as ast.ExpressionStatement
-	literal := stmt.expression as ast.IntegerLiteral
-	assert literal.value == 5, "literal value wasn't 5 got: ${literal.value}"
-	assert literal.token_literal() == '5', "literal token literal wasn't 5 got: ${literal.value}"
+	assert literal_expression_test(stmt.expression, 5)
+}
+
+fn test_boolean_literal_expression() {
+	inputs := {
+		'true;':  true
+		'false;': false
+	}
+	for input, value in inputs {
+		lex := lexer.Lexer.new(input)
+		mut par := Parser.new(lex)
+		prog := par.parse_program()
+		check_parser_errors(par)
+		assert prog.statements.len == 1, 'prog doesnt have 1 statement(s), got: ${prog.statements.len}'
+		stmt := prog.statements[0] as ast.ExpressionStatement
+		assert literal_expression_test(stmt.expression, value)
+	}
 }
 
 fn test_identifier_expressions() {
@@ -142,10 +206,7 @@ fn test_identifier_expressions() {
 	check_parser_errors(par)
 	assert prog.statements.len == 1, 'prog doesnt have 1 statement(s), got: ${prog.statements.len}'
 	stmt := prog.statements[0] as ast.ExpressionStatement
-	// options broke here and didn't show much
-	ident := stmt.expression as ast.Identifier
-	assert ident.value == 'foobar', "didn't get foobar got ${ident.value}"
-	assert ident.token_literal() == 'foobar', "didn't get foobar got ${ident.token_literal()}"
+	literal_expression_test(stmt.expression, 'foobar')
 }
 
 fn test_return_statements() {

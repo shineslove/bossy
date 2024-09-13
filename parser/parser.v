@@ -72,14 +72,14 @@ pub fn Parser.new(lex lexer.Lexer) &Parser {
 	mut par := &Parser{
 		lex: lex
 	}
-	par.next_token()
-	par.next_token()
 	par.prefix_parse_funcs = map[token.Token]PrefixParseFunc{}
 	par.register_prefix(.ident, par.parse_identifier)
 	// had to add parser to heap after this one
 	par.register_prefix(.integer, par.parse_integer_literal)
 	par.register_prefix(.bang, par.parse_prefix_expression)
 	par.register_prefix(.minus, par.parse_prefix_expression)
+	par.register_prefix(.@true, par.parse_boolean)
+	par.register_prefix(.@false, par.parse_boolean)
 	par.infix_parse_funcs = map[token.Token]InfixParseFunc{}
 	par.register_infix(.plus, par.parse_infix_expression)
 	par.register_infix(.minus, par.parse_infix_expression)
@@ -89,7 +89,16 @@ pub fn Parser.new(lex lexer.Lexer) &Parser {
 	par.register_infix(.not_eq, par.parse_infix_expression)
 	par.register_infix(.lt, par.parse_infix_expression)
 	par.register_infix(.gt, par.parse_infix_expression)
+	par.next_token()
+	par.next_token()
 	return par
+}
+
+fn (mut p Parser) parse_boolean() ast.Expression {
+	return ast.Boolean{
+		token: p.curr_token
+		value: p.curr_token_is(.@true)
+	}
 }
 
 // this caused me hours of pain, needed to be mut Parser

@@ -59,7 +59,21 @@ pub:
 	return_value ?Expression
 }
 
-pub type Expression = Identifier | IntegerLiteral | PrefixExpression | InfixExpression
+pub struct Boolean {
+pub:
+	token token.TokenType
+	value bool
+}
+
+pub fn (b Boolean) token_literal() string {
+	return b.token.value
+}
+
+pub fn (b Boolean) str() string {
+	return '${b.token.value}'
+}
+
+pub type Expression = Identifier | IntegerLiteral | PrefixExpression | InfixExpression | Boolean
 
 pub fn (exp Expression) token_literal() string {
 	return match exp {
@@ -67,6 +81,7 @@ pub fn (exp Expression) token_literal() string {
 		IntegerLiteral { exp.token_literal() }
 		PrefixExpression { exp.token_literal() }
 		InfixExpression { exp.token_literal() }
+		Boolean { exp.token_literal() }
 	}
 }
 
@@ -76,6 +91,7 @@ pub fn (exp Expression) str() string {
 		IntegerLiteral { '${exp.str()}' }
 		PrefixExpression { '${exp.str()}' }
 		InfixExpression { '${exp.str()}' }
+		Boolean { '${exp.str()}' }
 	}
 }
 

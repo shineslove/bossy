@@ -222,6 +222,26 @@ fn test_if_expression() {
 	assert exp.alternative == none, 'exp alternative was present'
 }
 
+fn test_if_else_expression() {
+	input := 'if (x < y) { x } else { y }'
+	lex := lexer.Lexer.new(input)
+	mut par := Parser.new(lex)
+	prog := par.parse_program()
+	check_parser_errors(par)
+	assert prog.statements.len == 1, 'prog doesnt have 1 statement(s), got: ${prog.statements.len}'
+	stmt := prog.statements[0] as ast.ExpressionStatement
+	exp := stmt.expression as ast.IfExpression
+	assert infix_expression_test(exp.condition, 'x', '<', 'y')
+	assert exp.consequence.statements.len == 1, 'consequence doesnt have 1 statement(s), got: ${exp.consequence.statements.len}'
+	consequence := exp.consequence.statements[0] as ast.ExpressionStatement
+	assert check_identifier(consequence.expression, 'x')
+	assert exp.alternative != none, 'exp alternative was not present'
+	alt := exp.alternative or { panic('was none after all') }
+	assert alt.statements.len == 1, 'alternative doesnt have 1 statement(s), got: ${exp.consequence.statements.len}'
+	alternative := alt.statements[0] as ast.ExpressionStatement
+	assert check_identifier(alternative.expression, 'y')
+}
+
 fn test_integer_literal_expression() {
 	input := '5;'
 	lex := lexer.Lexer.new(input)

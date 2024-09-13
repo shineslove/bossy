@@ -3,7 +3,7 @@ module ast
 import lexer.token
 
 // no match on str: made it segfault, too much recursions?  (no error)
-pub type Statement = LetStatement | ReturnStatement | ExpressionStatement
+pub type Statement = LetStatement | ReturnStatement | ExpressionStatement | BlockStatement
 
 pub fn (st Statement) token_literal() string {
 	return st.token_literal()
@@ -14,6 +14,7 @@ pub fn (st Statement) str() string {
 		LetStatement { st.str() }
 		ReturnStatement { st.str() }
 		ExpressionStatement { st.str() }
+		BlockStatement { st.str() }
 	}
 }
 
@@ -73,7 +74,54 @@ pub fn (b Boolean) str() string {
 	return '${b.token.value}'
 }
 
-pub type Expression = Identifier | IntegerLiteral | PrefixExpression | InfixExpression | Boolean
+struct BlockStatement {
+	token token.TokenType
+pub:
+	statements []Statement
+}
+
+fn (bs BlockStatement) token_literal() string {
+	return bs.token.value
+}
+
+fn (bs BlockStatement) str() string {
+	mut output := ''
+	for stmt in bs.statements {
+		output += stmt.str()
+	}
+	return output
+}
+
+pub struct IfExpression {
+pub:
+	token       token.TokenType
+	condition   Expression
+	consequence BlockStatement
+	alternative ?BlockStatement
+}
+
+fn (ie IfExpression) token_literal() string {
+	return ie.token.value
+}
+
+fn (ie IfExpression) str() string {
+	mut output := ''
+	output += 'if'
+	output += '${ie.condition} '
+	output += '${ie.consequence}'
+	if ie.alternative != none {
+		output += 'else '
+		output += '${ie.alternative}'
+	}
+	return output
+}
+
+pub type Expression = Identifier
+	| IntegerLiteral
+	| PrefixExpression
+	| InfixExpression
+	| Boolean
+	| IfExpression
 
 pub fn (exp Expression) token_literal() string {
 	return match exp {
@@ -82,6 +130,7 @@ pub fn (exp Expression) token_literal() string {
 		PrefixExpression { exp.token_literal() }
 		InfixExpression { exp.token_literal() }
 		Boolean { exp.token_literal() }
+		IfExpression { exp.token_literal() }
 	}
 }
 
@@ -92,6 +141,7 @@ pub fn (exp Expression) str() string {
 		PrefixExpression { '${exp.str()}' }
 		InfixExpression { '${exp.str()}' }
 		Boolean { '${exp.str()}' }
+		IfExpression { '${exp.str()}' }
 	}
 }
 

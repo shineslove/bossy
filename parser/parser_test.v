@@ -206,6 +206,22 @@ fn check_integer_literal(il ast.Expression, value int) bool {
 	return true
 }
 
+fn test_if_expression() {
+	input := 'if (x < y) { x }'
+	lex := lexer.Lexer.new(input)
+	mut par := Parser.new(lex)
+	prog := par.parse_program()
+	check_parser_errors(par)
+	assert prog.statements.len == 1, 'prog doesnt have 1 statement(s), got: ${prog.statements.len}'
+	stmt := prog.statements[0] as ast.ExpressionStatement
+	exp := stmt.expression as ast.IfExpression
+	assert infix_expression_test(exp.condition, 'x', '<', 'y')
+	assert exp.consequence.statements.len == 1, 'consequence doesnt have 1 statement(s), got: ${exp.consequence.statements.len}'
+	consequence := exp.consequence.statements[0] as ast.ExpressionStatement
+	assert check_identifier(consequence.expression, 'x')
+	assert exp.alternative == none, 'exp alternative was present'
+}
+
 fn test_integer_literal_expression() {
 	input := '5;'
 	lex := lexer.Lexer.new(input)
@@ -257,7 +273,7 @@ fn test_return_statements() {
 	assert prog.statements.len == 3, 'prog doesnt have 3 statements'
 	for stmt in prog {
 		ret_stmt := stmt as ast.ReturnStatement
-		assert ret_stmt.token.@type == .@return, '${stmt.token.@type} was not a return'
+		assert ret_stmt.token.@type == .@return, '${ret_stmt.token.@type} was not a return'
 	}
 }
 

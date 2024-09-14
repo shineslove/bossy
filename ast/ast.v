@@ -18,6 +18,14 @@ pub fn (st Statement) str() string {
 	}
 }
 
+pub struct LetStatement {
+pub:
+	token token.TokenType
+	value ?Expression
+pub mut:
+	name Identifier
+}
+
 pub fn (ls LetStatement) token_literal() string {
 	return ls.token.value
 }
@@ -30,6 +38,12 @@ pub fn (ls LetStatement) str() string {
 	}
 	output += ';'
 	return output
+}
+
+pub struct ReturnStatement {
+pub:
+	token        token.TokenType
+	return_value ?Expression
 }
 
 pub fn (rs ReturnStatement) token_literal() string {
@@ -52,12 +66,6 @@ pub fn (es ExpressionStatement) token_literal() string {
 
 pub fn (es ExpressionStatement) str() string {
 	return es.expression.str()
-}
-
-pub struct ReturnStatement {
-pub:
-	token        token.TokenType
-	return_value ?Expression
 }
 
 pub struct Boolean {
@@ -147,30 +155,6 @@ pub fn (exp Expression) str() string {
 	}
 }
 
-pub struct IntegerLiteral {
-pub:
-	token token.TokenType
-pub mut:
-	value int
-}
-
-pub struct InfixExpression {
-pub:
-	token token.TokenType
-pub mut:
-	left     Expression
-	operator string
-	right    Expression
-}
-
-pub struct PrefixExpression {
-pub:
-	token    token.TokenType
-	operator string
-pub mut:
-	right Expression
-}
-
 pub struct ExpressionStatement {
 pub:
 	token token.TokenType
@@ -178,20 +162,11 @@ pub mut:
 	expression Expression
 }
 
-pub struct LetStatement {
+pub struct IntegerLiteral {
 pub:
 	token token.TokenType
-	value ?Expression
 pub mut:
-	name Identifier
-}
-
-pub fn (id Identifier) token_literal() string {
-	return id.token.value
-}
-
-pub fn (id Identifier) str() string {
-	return '${id.value}'
+	value int
 }
 
 pub fn (il IntegerLiteral) token_literal() string {
@@ -200,6 +175,14 @@ pub fn (il IntegerLiteral) token_literal() string {
 
 pub fn (il IntegerLiteral) str() string {
 	return il.token.value
+}
+
+pub struct PrefixExpression {
+pub:
+	token    token.TokenType
+	operator string
+pub mut:
+	right Expression
 }
 
 pub fn (pe PrefixExpression) token_literal() string {
@@ -213,6 +196,15 @@ pub fn (pe PrefixExpression) str() string {
 	output += '${pe.right.str()}'
 	output += ')'
 	return output
+}
+
+pub struct InfixExpression {
+pub:
+	token token.TokenType
+pub mut:
+	left     Expression
+	operator string
+	right    Expression
 }
 
 pub fn (ie InfixExpression) token_literal() string {
@@ -233,6 +225,14 @@ pub struct Identifier {
 pub mut:
 	token token.TokenType
 	value string
+}
+
+pub fn (id Identifier) token_literal() string {
+	return id.token.value
+}
+
+pub fn (id Identifier) str() string {
+	return '${id.value}'
 }
 
 pub struct Program {

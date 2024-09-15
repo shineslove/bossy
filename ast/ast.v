@@ -126,12 +126,39 @@ fn (ie IfExpression) str() string {
 	return output
 }
 
+pub struct FunctionLiteral {
+pub:
+	token token.TokenType
+pub mut:
+	parameters []Identifier
+	body       BlockStatement
+}
+
+fn (fl FunctionLiteral) token_literal() string {
+	return fl.token.value
+}
+
+fn (fl FunctionLiteral) str() string {
+	mut output := ''
+	mut params := []string{}
+	for param in params {
+		params << param
+	}
+	output += fl.token_literal()
+	output += '('
+	output += params.join(', ')
+	output += ')'
+	output += '${fl.body.str()}'
+	return output
+}
+
 pub type Expression = Identifier
 	| IntegerLiteral
 	| PrefixExpression
 	| InfixExpression
 	| Boolean
 	| IfExpression
+	| FunctionLiteral
 
 pub fn (exp Expression) token_literal() string {
 	return match exp {
@@ -141,6 +168,7 @@ pub fn (exp Expression) token_literal() string {
 		InfixExpression { exp.token_literal() }
 		Boolean { exp.token_literal() }
 		IfExpression { exp.token_literal() }
+		FunctionLiteral { exp.token_literal() }
 	}
 }
 
@@ -152,6 +180,7 @@ pub fn (exp Expression) str() string {
 		InfixExpression { '${exp.str()}' }
 		Boolean { '${exp.str()}' }
 		IfExpression { '${exp.str()}' }
+		FunctionLiteral { '${exp.str()}' }
 	}
 }
 

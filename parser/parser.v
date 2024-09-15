@@ -82,6 +82,7 @@ pub fn Parser.new(lex lexer.Lexer) &Parser {
 	par.register_prefix(.@false, par.parse_boolean)
 	par.register_prefix(.lparen, par.parse_grouped_expression)
 	par.register_prefix(.@if, par.parse_if_expression)
+	par.register_prefix(.function, par.parse_function_literal)
 	par.infix_parse_funcs = map[token.Token]InfixParseFunc{}
 	par.register_infix(.plus, par.parse_infix_expression)
 	par.register_infix(.minus, par.parse_infix_expression)
@@ -94,6 +95,47 @@ pub fn Parser.new(lex lexer.Lexer) &Parser {
 	par.next_token()
 	par.next_token()
 	return par
+}
+
+fn (mut p Parser) parse_function_literal() ast.Expression {
+	mut lit := ast.FunctionLiteral{
+		token: p.curr_token
+	}
+	if !p.expect_peek(.lparen) {
+		return ast.Expression{}
+	}
+	lit.parameters = p.parse_function_parameters()
+	if !p.expect_peek(.lbrace) {
+		return ast.Expression{}
+	}
+	lit.body = p.parse_block_statement()
+	return lit
+}
+
+fn (mut p Parser) parse_function_parameters() []ast.Identifier {
+	mut identifiers := []ast.Identifier{}
+	if p.peek_token_is(.rparen) {
+		p.next_token()
+		return identifiers
+	}
+	p.next_token()
+	identifiers << ast.Identifier{
+		token: p.curr_token
+		value: p.curr_token.value
+	}
+	for p.peek_token_is(.comma) {
+		p.next_token()
+		p.next_token()
+		identifiers << ast.Identifier{
+			token: p.curr_token
+			value: p.curr_token.value
+		}
+	}
+	if !p.expect_peek(.rparen) {
+		// should be none
+		return []
+	}
+	return identifiers
 }
 
 fn (mut p Parser) parse_if_expression() ast.Expression {

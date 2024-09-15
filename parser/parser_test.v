@@ -16,6 +16,11 @@ struct InfixTests {
 	right    LocalAny
 }
 
+struct FuncParamsTests {
+	input           string
+	expected_params []string
+}
+
 type LocalAny = string | int | bool
 
 fn infix_expression_test(exp ast.Expression, left LocalAny, operator string, right LocalAny) bool {
@@ -46,6 +51,52 @@ fn check_boolean(exp ast.Expression, value bool) bool {
 	assert boolean.value == value, 'ident value is not ${value} got: ${boolean.value}'
 	assert boolean.token_literal() == value.str(), 'ident token literal not ${value}, got: ${boolean.token_literal()}'
 	return true
+}
+
+fn test_function_parameter_parsing() {
+	tsts := [
+		FuncParamsTests{
+			input:           'fn() {};'
+			expected_params: []
+		},
+		FuncParamsTests{
+			input:           'fn(x) {};'
+			expected_params: ['x']
+		},
+		FuncParamsTests{
+			input:           'fn(x, y, z) {};'
+			expected_params: ['x', 'y', 'z']
+		},
+	]
+	for tst in tsts {
+		lex := lexer.Lexer.new(tst.input)
+		mut par := Parser.new(lex)
+		prog := par.parse_program()
+		check_parser_errors(par)
+		stmt := prog.statements[0] as ast.ExpressionStatement
+		function := stmt.expression as ast.FunctionLiteral
+		assert function.parameters.len == tst.expected_params.len, 'length params wrong. want ${tst.expected_params.len}, ${function.parameters.len}'
+		for idx, ident in tst.expected_params {
+			literal_expression_test(function.parameters[idx], ident)
+		}
+	}
+}
+
+fn test_function_literal_parsing() {
+	input := 'fn(x, y) { x + y; }'
+	lex := lexer.Lexer.new(input)
+	mut par := Parser.new(lex)
+	prog := par.parse_program()
+	check_parser_errors(par)
+	assert prog.statements.len == 1, 'prog doesnt have 1 statement(s), got: ${prog.statements.len}'
+	stmt := prog.statements[0] as ast.ExpressionStatement
+	func := stmt.expression as ast.FunctionLiteral
+	assert func.parameters.len == 2, 'function literal params wrong. want 2, got: ${func.parameters.len}'
+	assert literal_expression_test(func.parameters[0], 'x')
+	assert literal_expression_test(func.parameters[1], 'y')
+	assert func.body.statements.len == 1, 'function body statements want 1, got: ${func.body.statements.len}'
+	body_stmt := func.body.statements[0] as ast.ExpressionStatement
+	infix_expression_test(body_stmt.expression, 'x', '+', 'y')
 }
 
 fn test_operator_precedence_parsing() {

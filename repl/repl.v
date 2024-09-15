@@ -2,8 +2,9 @@ module repl
 
 import readline
 import lexer
+import parser
 
-//R.E.P.L for outputting 'Monkey'
+// R.E.P.L for outputting 'Monkey'
 pub fn start() {
 	prompt := '>> '
 	mut reader := readline.Readline{}
@@ -13,8 +14,21 @@ pub fn start() {
 			break
 		}
 		l := lexer.Lexer.new(input)
-		for tok in l {
-			println(tok)
+		mut par := parser.Parser.new(l)
+		prog := par.parse_program()
+		if par.errors().len != 0 {
+			print_parser_errors(par.errors())
+			continue
 		}
+		println('${prog}\n')
+	}
+}
+
+fn print_parser_errors(errors []string) {
+	println('🐒🐒🐒🐒')
+	println('Woops! We ran into some monkey business here!')
+	println(' parser errors:')
+	for e in errors {
+		println('\t${e}\n')
 	}
 }

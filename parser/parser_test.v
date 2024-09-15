@@ -21,6 +21,17 @@ struct FuncParamsTests {
 	expected_params []string
 }
 
+struct LetStateTests {
+	input               string
+	expected_identifier string
+	expected_value      LocalAny
+}
+
+struct ReturnStateTests {
+	input          string
+	expected_value LocalAny
+}
+
 type LocalAny = string | int | bool
 
 fn infix_expression_test(exp ast.Expression, left LocalAny, operator string, right LocalAny) bool {
@@ -51,6 +62,22 @@ fn check_boolean(exp ast.Expression, value bool) bool {
 	assert boolean.value == value, 'ident value is not ${value} got: ${boolean.value}'
 	assert boolean.token_literal() == value.str(), 'ident token literal not ${value}, got: ${boolean.token_literal()}'
 	return true
+}
+
+fn test_call_expression_parsing() {
+	input := 'add(1, 2 * 3, 4 + 5);'
+	lex := lexer.Lexer.new(input)
+	mut par := Parser.new(lex)
+	prog := par.parse_program()
+	check_parser_errors(par)
+	assert prog.statements.len == 1, 'prog doesnt have 1 statement(s), got: ${prog.statements.len}'
+	stmt := prog.statements[0] as ast.ExpressionStatement
+	exp := stmt.expression as ast.CallExpression
+	assert check_identifier(exp.function, 'add')
+	assert exp.arguments.len == 3, 'wrong len of args. got: ${exp.arguments.len}'
+	literal_expression_test(exp.arguments[0], 1)
+	infix_expression_test(exp.arguments[1], 2, '*', 3)
+	infix_expression_test(exp.arguments[2], 4, '+', 5)
 }
 
 fn test_function_parameter_parsing() {
@@ -101,6 +128,10 @@ fn test_function_literal_parsing() {
 
 fn test_operator_precedence_parsing() {
 	tsts := create_test_cases_operator_pred_parse([
+		['a + add(b * c) + d', '((a + add((b * c))) + d)'],
+		['add(a, b, 1, 2 * 3, 4 + 5, add(6, 7 * 8))',
+			'add(a, b, 1, (2 * 3), (4 + 5), add(6, (7 * 8)))'],
+		['add(a + b + c * d / f + g)', 'add((((a + b) + ((c * d) / f)) + g))'],
 		['-a * b', '((-a) * b)'],
 		['!-a', '(!(-a))'],
 		['a + b + c', '((a + b) + c)'],
@@ -332,37 +363,42 @@ fn test_identifier_expressions() {
 }
 
 fn test_return_statements() {
-	input := '
-	return 5;
-	return 10;
-	return 993322;
-	'
-	lex := lexer.Lexer.new(input)
-	mut par := Parser.new(lex)
-	prog := par.parse_program()
-	check_parser_errors(par)
-	assert prog.statements.len == 3, 'prog doesnt have 3 statements'
-	for stmt in prog {
-		ret_stmt := stmt as ast.ReturnStatement
-		assert ret_stmt.token.@type == .@return, '${ret_stmt.token.@type} was not a return'
+	tsts := [
+		ReturnStateTests{'return 5;', 5},
+		ReturnStateTests{'return true;', true},
+		ReturnStateTests{'return foobar;', 'foobar'},
+	]
+	for tst in tsts {
+		lex := lexer.Lexer.new(tst.input)
+		mut par := Parser.new(lex)
+		prog := par.parse_program()
+		check_parser_errors(par)
+		assert prog.statements.len == 1, 'prog doesnt have 1 statement(s), got: ${prog.statements.len}'
+		stmt := prog.statements[0]
+		return_stmt := stmt as ast.ReturnStatement
+		assert return_stmt.token_literal() == 'return', 'return_stmt token_literal not return, got: ${return_stmt.token_literal()}'
+		val := return_stmt.return_value or { panic('return value broken man') }
+		assert literal_expression_test(val, tst.expected_value)
 	}
 }
 
 fn test_let_statements() {
-	input := '
-	let x = 5;
-	let y = 10;
-	let foobar = 838383;
-	'
-	lex := lexer.Lexer.new(input)
-	mut par := Parser.new(lex)
-	prog := par.parse_program()
-	check_parser_errors(par)
-	// assert prog != none, 'parse program returned non' ?? why no works
-	assert prog.statements.len == 3, 'prog doesnt have 3 statements'
-	tests := ['x', 'y', 'foobar']
-	for i, stmt in prog {
-		assert check_let_statement(stmt, tests[i])
+	tsts := [
+		LetStateTests{'let x = 5;', 'x', 5},
+		LetStateTests{'let y = true;', 'y', true},
+		LetStateTests{'let foobar = y;', 'foobar', 'y'},
+	]
+	for tst in tsts {
+		lex := lexer.Lexer.new(tst.input)
+		mut par := Parser.new(lex)
+		prog := par.parse_program()
+		check_parser_errors(par)
+		assert prog.statements.len == 1, 'prog doesnt have 1 statement(s), got: ${prog.statements.len}'
+		stmt := prog.statements[0]
+		assert check_let_statement(stmt, tst.expected_identifier)
+		let_stmt := stmt as ast.LetStatement
+		val := let_stmt.value or { panic('let statement broken man') }
+		assert literal_expression_test(val, tst.expected_value)
 	}
 }
 

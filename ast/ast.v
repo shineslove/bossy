@@ -21,9 +21,9 @@ pub fn (st Statement) str() string {
 pub struct LetStatement {
 pub:
 	token token.TokenType
-	value ?Expression
 pub mut:
-	name Identifier
+	value ?Expression
+	name  Identifier
 }
 
 pub fn (ls LetStatement) token_literal() string {
@@ -42,7 +42,8 @@ pub fn (ls LetStatement) str() string {
 
 pub struct ReturnStatement {
 pub:
-	token        token.TokenType
+	token token.TokenType
+pub mut:
 	return_value ?Expression
 }
 
@@ -152,6 +153,31 @@ fn (fl FunctionLiteral) str() string {
 	return output
 }
 
+pub struct CallExpression {
+pub:
+	token    token.TokenType
+	function Expression
+pub mut:
+	arguments []Expression
+}
+
+fn (ce CallExpression) token_literal() string {
+	return ce.token.value
+}
+
+fn (ce CallExpression) str() string {
+	mut output := ''
+	mut args := []string{}
+	for arg in ce.arguments {
+		args << arg.str()
+	}
+	output += ce.function.str()
+	output += '('
+	output += args.join(', ')
+	output += ')'
+	return output
+}
+
 pub type Expression = Identifier
 	| IntegerLiteral
 	| PrefixExpression
@@ -159,6 +185,7 @@ pub type Expression = Identifier
 	| Boolean
 	| IfExpression
 	| FunctionLiteral
+	| CallExpression
 
 pub fn (exp Expression) token_literal() string {
 	return match exp {
@@ -169,6 +196,7 @@ pub fn (exp Expression) token_literal() string {
 		Boolean { exp.token_literal() }
 		IfExpression { exp.token_literal() }
 		FunctionLiteral { exp.token_literal() }
+		CallExpression { exp.token_literal() }
 	}
 }
 
@@ -181,6 +209,7 @@ pub fn (exp Expression) str() string {
 		Boolean { '${exp.str()}' }
 		IfExpression { '${exp.str()}' }
 		FunctionLiteral { '${exp.str()}' }
+		CallExpression { '${exp.str()}' }
 	}
 }
 

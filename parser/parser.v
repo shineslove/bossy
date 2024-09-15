@@ -30,6 +30,7 @@ const precedences = {
 	token.Token.minus:    Precedence.sum
 	token.Token.slash:    Precedence.product
 	token.Token.asterisk: Precedence.product
+	token.Token.lparen:   Precedence.call
 }
 
 // should've read the docs, just needed to return a
@@ -92,9 +93,38 @@ pub fn Parser.new(lex lexer.Lexer) &Parser {
 	par.register_infix(.not_eq, par.parse_infix_expression)
 	par.register_infix(.lt, par.parse_infix_expression)
 	par.register_infix(.gt, par.parse_infix_expression)
+	par.register_infix(.lparen, par.parse_call_expression)
 	par.next_token()
 	par.next_token()
 	return par
+}
+
+fn (mut p Parser) parse_call_expression(function ast.Expression) ast.Expression {
+	mut exp := ast.CallExpression{
+		token:    p.curr_token
+		function: function
+	}
+	exp.arguments = p.parse_call_arguments()
+	return exp
+}
+
+fn (mut p Parser) parse_call_arguments() []ast.Expression {
+	mut args := []ast.Expression{}
+	if p.peek_token_is(.rparen) {
+		p.next_token()
+		return args
+	}
+	p.next_token()
+	args << p.parse_expression(.lowest)
+	for p.peek_token_is(.comma) {
+		p.next_token()
+		p.next_token()
+		args << p.parse_expression(.lowest)
+	}
+	if !p.expect_peek(.rparen) {
+		return []
+	}
+	return args
 }
 
 fn (mut p Parser) parse_function_literal() ast.Expression {
@@ -254,8 +284,9 @@ fn (mut p Parser) parse_let_statement() ?ast.Statement {
 	if !p.expect_peek(.assign) {
 		return none
 	}
-	// TODO: skipping expressions for now
-	for !p.curr_token_is(.semicolon) {
+	p.next_token()
+	stmt.value = p.parse_expression(.lowest)
+	if p.peek_token_is(.semicolon) {
 		p.next_token()
 	}
 	return stmt
@@ -266,8 +297,8 @@ fn (mut p Parser) parse_return_statement() ?ast.Statement {
 		token: p.curr_token
 	}
 	p.next_token()
-	// TODO: skipping expressions for now
-	for !p.curr_token_is(.semicolon) {
+	stmt.return_value = p.parse_expression(.lowest)
+	if p.peek_token_is(.semicolon) {
 		p.next_token()
 	}
 	return stmt

@@ -217,7 +217,7 @@ pub struct ExpressionStatement {
 pub:
 	token token.TokenType
 pub mut:
-	expression Expression
+	expression ?Expression
 }
 
 pub struct IntegerLiteral {
@@ -240,7 +240,7 @@ pub:
 	token    token.TokenType
 	operator string
 pub mut:
-	right Expression
+	right ?Expression
 }
 
 pub fn (pe PrefixExpression) token_literal() string {
@@ -262,7 +262,7 @@ pub:
 pub mut:
 	left     Expression
 	operator string
-	right    Expression
+	right    ?Expression
 }
 
 pub fn (ie InfixExpression) token_literal() string {

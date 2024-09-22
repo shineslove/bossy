@@ -8,7 +8,7 @@ import ast
 
 type PrefixParseFunc = fn () ast.Expression
 
-type InfixParseFunc = fn (ast.Expression) ast.Expression
+type InfixParseFunc = fn (ast.Expression) ast.Expression 
 
 enum Precedence {
 	_
@@ -115,11 +115,11 @@ fn (mut p Parser) parse_call_arguments() []ast.Expression {
 		return args
 	}
 	p.next_token()
-	args << p.parse_expression(.lowest)
+	args << p.parse_expression(.lowest) or { panic('first args error') }
 	for p.peek_token_is(.comma) {
 		p.next_token()
 		p.next_token()
-		args << p.parse_expression(.lowest)
+		args << p.parse_expression(.lowest) or { panic('second args error') }
 	}
 	if !p.expect_peek(.rparen) {
 		return []
@@ -127,16 +127,16 @@ fn (mut p Parser) parse_call_arguments() []ast.Expression {
 	return args
 }
 
-fn (mut p Parser) parse_function_literal() ast.Expression {
+fn (mut p Parser) parse_function_literal() ?ast.Expression {
 	mut lit := ast.FunctionLiteral{
 		token: p.curr_token
 	}
 	if !p.expect_peek(.lparen) {
-		return ast.Expression{}
+		return none
 	}
 	lit.parameters = p.parse_function_parameters()
 	if !p.expect_peek(.lbrace) {
-		return ast.Expression{}
+		return none
 	}
 	lit.body = p.parse_block_statement()
 	return lit
@@ -168,20 +168,20 @@ fn (mut p Parser) parse_function_parameters() []ast.Identifier {
 	return identifiers
 }
 
-fn (mut p Parser) parse_if_expression() ast.Expression {
+fn (mut p Parser) parse_if_expression() ?ast.Expression {
 	mut exp := ast.IfExpression{
 		token: p.curr_token
 	}
 	if !p.expect_peek(.lparen) {
-		return ast.Expression{}
+		return none
 	}
 	p.next_token()
-	exp.condition = p.parse_expression(.lowest)
+	exp.condition = p.parse_expression(.lowest) or { panic('condition not found') }
 	if !p.expect_peek(.rparen) {
-		return ast.Expression{}
+		return none
 	}
 	if !p.expect_peek(.lbrace) {
-		return ast.Expression{}
+		return none
 	}
 	exp.consequence = p.parse_block_statement()
 	if p.peek_token_is(.@else) {
@@ -210,11 +210,11 @@ fn (mut p Parser) parse_block_statement() ast.BlockStatement {
 	return block
 }
 
-fn (mut p Parser) parse_grouped_expression() ast.Expression {
+fn (mut p Parser) parse_grouped_expression() ?ast.Expression {
 	p.next_token()
 	exp := p.parse_expression(.lowest)
 	if !p.expect_peek(.rparen) {
-		return ast.Expression{}
+		return none
 	}
 	return exp
 }
@@ -315,10 +315,10 @@ fn (mut p Parser) parse_expression_statement() ast.Statement {
 	return stmt
 }
 
-fn (mut p Parser) parse_expression(precedence Precedence) ast.Expression {
+fn (mut p Parser) parse_expression(precedence Precedence) ?ast.Expression {
 	prefix := p.find_prefix_parse(p.curr_token.@type) or {
 		p.errors << 'no prefix parse func for ${p.curr_token.@type} found'
-		return ast.Expression{}
+		return none
 	}
 	mut left_exp := prefix()
 	for !p.peek_token_is(.semicolon) && int(precedence) < int(p.peek_precedence()) {

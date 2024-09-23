@@ -217,7 +217,7 @@ pub struct ExpressionStatement {
 pub:
 	token token.TokenType
 pub mut:
-	expression ?Expression
+	expression Expression
 }
 
 pub struct IntegerLiteral {
@@ -251,7 +251,8 @@ pub fn (pe PrefixExpression) str() string {
 	mut output := ''
 	output += '('
 	output += '${pe.operator}'
-	output += '${pe.right.str()}'
+	right := pe.right or { Expression{} }
+	output += '${right.str()}'
 	output += ')'
 	return output
 }
@@ -274,7 +275,8 @@ pub fn (ie InfixExpression) str() string {
 	output += '('
 	output += '${ie.left.str()}'
 	output += ' ${ie.operator} '
-	output += '${ie.right.str()}'
+	right := ie.right or { Expression{} }
+	output += '${right.str()}'
 	output += ')'
 	return output
 }

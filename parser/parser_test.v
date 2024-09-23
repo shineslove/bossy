@@ -38,7 +38,8 @@ fn infix_expression_test(exp ast.Expression, left LocalAny, operator string, rig
 	op_exp := exp as ast.InfixExpression
 	assert literal_expression_test(op_exp.left, left)
 	assert op_exp.operator == operator, 'exp.oper is not ${op_exp.operator} got: ${operator}'
-	assert literal_expression_test(op_exp.right, right)
+	exp_right := op_exp.right or { panic('expression should have right') }
+	assert literal_expression_test(exp_right, right)
 	return true
 }
 
@@ -191,7 +192,8 @@ fn test_parsing_prefix_expressions() {
 		stmt := prog.statements[0] as ast.ExpressionStatement
 		exp := stmt.expression as ast.PrefixExpression
 		assert exp.operator == tst.operator, 'exp operator is not ${tst.operator} but ${exp.operator}'
-		assert literal_expression_test(exp.right, tst.value)
+		right := exp.right or { panic('right should have a value') }
+		assert literal_expression_test(right, tst.value)
 	}
 }
 

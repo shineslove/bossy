@@ -8,7 +8,13 @@ import ast
 
 type PrefixParseFunc = fn () ast.Expression
 
-type InfixParseFunc = fn (ast.Expression) ast.Expression 
+type PrefixParseFuncOptional = fn () ?ast.Expression
+
+type Prefixes = PrefixParseFunc | PrefixParseFuncOptional
+
+type InfixParseFunc = fn (ast.Expression) ast.Expression
+
+type InfixParseFuncOptional = fn (ast.Expression) ?ast.Expression
 
 enum Precedence {
 	_
@@ -44,7 +50,7 @@ mut:
 	errors     []string
 }
 
-fn (mut p Parser) find_prefix_parse(tok token.Token) ?PrefixParseFunc {
+fn (mut p Parser) find_prefix_parse(tok token.Token) ?Prefixes {
 	// had to add parser to heap after this one
 	return match tok {
 		.ident { p.parse_identifier }
@@ -304,11 +310,11 @@ fn (mut p Parser) parse_return_statement() ?ast.Statement {
 	return stmt
 }
 
-fn (mut p Parser) parse_expression_statement() ast.Statement {
+fn (mut p Parser) parse_expression_statement() ?ast.Statement {
 	mut stmt := ast.ExpressionStatement{
 		token: p.curr_token
 	}
-	stmt.expression = p.parse_expression(.lowest)
+	stmt.expression = p.parse_expression(.lowest)?
 	if p.peek_token_is(.semicolon) {
 		p.next_token()
 	}
@@ -320,13 +326,24 @@ fn (mut p Parser) parse_expression(precedence Precedence) ?ast.Expression {
 		p.errors << 'no prefix parse func for ${p.curr_token.@type} found'
 		return none
 	}
-	mut left_exp := prefix()
-	for !p.peek_token_is(.semicolon) && int(precedence) < int(p.peek_precedence()) {
-		infix := p.find_infix_parse(p.peek_token.@type) or { return left_exp }
-		p.next_token()
-		left_exp = infix(left_exp)
+	if prefix is PrefixParseFunc {
+		mut left_exp := prefix()
+		for !p.peek_token_is(.semicolon) && int(precedence) < int(p.peek_precedence()) {
+			infix := p.find_infix_parse(p.peek_token.@type) or { return left_exp }
+			p.next_token()
+			left_exp = infix(left_exp)
+		}
+		return left_exp
+	} else if prefix is PrefixParseFuncOptional {
+		mut left_exp := prefix()?
+		for !p.peek_token_is(.semicolon) && int(precedence) < int(p.peek_precedence()) {
+			infix := p.find_infix_parse(p.peek_token.@type) or { return left_exp }
+			p.next_token()
+			left_exp = infix(left_exp)
+		}
+		return left_exp
 	}
-	return left_exp
+	return none
 }
 
 fn (mut p Parser) parse_prefix_expression() ast.Expression {

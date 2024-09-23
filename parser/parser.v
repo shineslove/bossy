@@ -68,6 +68,7 @@ fn (mut p Parser) find_prefix_parse(tok token.Token) ?Prefixes {
 
 fn (mut p Parser) find_infix_parse(tok token.Token) ?InfixParseFunc {
 	return match tok {
+		.lparen { p.parse_infix_expression }
 		.plus { p.parse_infix_expression }
 		.minus { p.parse_infix_expression }
 		.slash { p.parse_infix_expression }
@@ -76,7 +77,6 @@ fn (mut p Parser) find_infix_parse(tok token.Token) ?InfixParseFunc {
 		.not_eq { p.parse_infix_expression }
 		.lt { p.parse_infix_expression }
 		.gt { p.parse_infix_expression }
-		.lparen { p.parse_infix_expression }
 		else { none }
 	}
 }

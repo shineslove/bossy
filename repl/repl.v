@@ -4,7 +4,7 @@ import readline
 import lexer
 import parser
 
-// R.E.P.L for outputting 'Monkey'
+// R.P.P.L for outputting 'Monkey'
 pub fn start() {
 	prompt := '>> '
 	mut reader := readline.Readline{}

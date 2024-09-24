@@ -38,7 +38,8 @@ fn infix_expression_test(exp ast.Expression, left LocalAny, operator string, rig
 	op_exp := exp as ast.InfixExpression
 	assert literal_expression_test(op_exp.left, left)
 	assert op_exp.operator == operator, 'exp.oper is not ${op_exp.operator} got: ${operator}'
-	assert literal_expression_test(op_exp.right, right)
+	exp_right := op_exp.right or { panic('expression should have right') }
+	assert literal_expression_test(exp_right, right)
 	return true
 }
 
@@ -74,10 +75,11 @@ fn test_call_expression_parsing() {
 	stmt := prog.statements[0] as ast.ExpressionStatement
 	exp := stmt.expression as ast.CallExpression
 	assert check_identifier(exp.function, 'add')
-	assert exp.arguments.len == 3, 'wrong len of args. got: ${exp.arguments.len}'
-	literal_expression_test(exp.arguments[0], 1)
-	infix_expression_test(exp.arguments[1], 2, '*', 3)
-	infix_expression_test(exp.arguments[2], 4, '+', 5)
+	args := exp.arguments or { panic('arguments not found') }
+	assert args.len == 3, 'wrong len of args. got: ${args.len}'
+	literal_expression_test(args[0], 1)
+	infix_expression_test(args[1], 2, '*', 3)
+	infix_expression_test(args[2], 4, '+', 5)
 }
 
 fn test_function_parameter_parsing() {
@@ -191,7 +193,8 @@ fn test_parsing_prefix_expressions() {
 		stmt := prog.statements[0] as ast.ExpressionStatement
 		exp := stmt.expression as ast.PrefixExpression
 		assert exp.operator == tst.operator, 'exp operator is not ${tst.operator} but ${exp.operator}'
-		assert literal_expression_test(exp.right, tst.value)
+		right := exp.right or { panic('right should have a value') }
+		assert literal_expression_test(right, tst.value)
 	}
 }
 

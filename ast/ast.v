@@ -158,7 +158,7 @@ pub:
 	token    token.TokenType
 	function Expression
 pub mut:
-	arguments []Expression
+	arguments ?[]Expression
 }
 
 fn (ce CallExpression) token_literal() string {
@@ -240,7 +240,7 @@ pub:
 	token    token.TokenType
 	operator string
 pub mut:
-	right Expression
+	right ?Expression
 }
 
 pub fn (pe PrefixExpression) token_literal() string {
@@ -251,7 +251,8 @@ pub fn (pe PrefixExpression) str() string {
 	mut output := ''
 	output += '('
 	output += '${pe.operator}'
-	output += '${pe.right.str()}'
+	right := pe.right or { Expression{} }
+	output += '${right.str()}'
 	output += ')'
 	return output
 }
@@ -262,7 +263,7 @@ pub:
 pub mut:
 	left     Expression
 	operator string
-	right    Expression
+	right    ?Expression
 }
 
 pub fn (ie InfixExpression) token_literal() string {
@@ -274,7 +275,8 @@ pub fn (ie InfixExpression) str() string {
 	output += '('
 	output += '${ie.left.str()}'
 	output += ' ${ie.operator} '
-	output += '${ie.right.str()}'
+	right := ie.right or { Expression{} }
+	output += '${right.str()}'
 	output += ')'
 	return output
 }

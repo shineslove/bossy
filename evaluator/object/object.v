@@ -1,6 +1,6 @@
 module object
 
-enum Obj {
+pub enum Obj {
 	integer
 	boolean
 	null
@@ -8,7 +8,7 @@ enum Obj {
 
 pub type Object = Integer | Boolean | Null
 
-fn (ob Object) kind() Obj {
+pub fn (ob Object) kind() Obj {
 	return match ob {
 		Integer { .integer }
 		Boolean { .boolean }

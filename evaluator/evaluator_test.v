@@ -14,6 +14,11 @@ struct EvalBoolTests {
 	expected bool
 }
 
+struct BangTests {
+	input    string
+	expected bool
+}
+
 fn test_eval_boolean_expression() {
 	tsts := [
 		EvalBoolTests{
@@ -32,6 +37,22 @@ fn test_eval_boolean_expression() {
 	}
 }
 
+fn test_bang_operator() {
+	tsts := [
+		BangTests{'!true', false},
+		BangTests{'!false', true},
+		BangTests{'!5', false},
+		BangTests{'!!true', true},
+		BangTests{'!!false', false},
+		BangTests{'!!5', true},
+	]
+	for tst in tsts {
+		evaluated := eval_test(tst.input)
+		assert evaluated != none, 'object is not Boolean, got ${evaluated}'
+		assert boolean_object_test(evaluated?, tst.expected)
+	}
+}
+
 fn test_eval_integer_expression() {
 	tsts := [
 		EvalIntTests{
@@ -41,6 +62,14 @@ fn test_eval_integer_expression() {
 		EvalIntTests{
 			input:    '10'
 			expected: 10
+		},
+		EvalIntTests{
+			input:    '-5'
+			expected: -5
+		},
+		EvalIntTests{
+			input:    '-10'
+			expected: -10
 		},
 	]
 	for tst in tsts {

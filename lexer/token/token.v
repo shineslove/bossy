@@ -35,3 +35,7 @@ pub:
 	value string
 	@type Token
 }
+
+fn (tok TokenType) str() string {
+	return '${tok.@type}(${tok.value})'
+}

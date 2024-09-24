@@ -320,7 +320,7 @@ fn (mut p Parser) parse_expression_statement() ?ast.Statement {
 
 fn (mut p Parser) parse_expression(precedence Precedence) ?ast.Expression {
 	prefix := p.find_prefix_parse(p.curr_token.@type) or {
-		p.errors << 'no prefix parse func for ${p.curr_token.@type} found'
+		p.errors << 'no prefix parse func for ${p.curr_token} found'
 		return none
 	}
 	mut left_exp := match prefix {

@@ -104,9 +104,10 @@ fn test_function_parameter_parsing() {
 		check_parser_errors(par)
 		stmt := prog.statements[0] as ast.ExpressionStatement
 		function := stmt.expression as ast.FunctionLiteral
-		assert function.parameters.len == tst.expected_params.len, 'length params wrong. want ${tst.expected_params.len}, ${function.parameters.len}'
+		params := function.parameters or { panic('parameters were expected')}
+		assert params.len == tst.expected_params.len, 'length params wrong. want ${tst.expected_params.len}, ${params.len}'
 		for idx, ident in tst.expected_params {
-			literal_expression_test(function.parameters[idx], ident)
+			literal_expression_test(params[idx], ident)
 		}
 	}
 }
@@ -120,9 +121,10 @@ fn test_function_literal_parsing() {
 	assert prog.statements.len == 1, 'prog doesnt have 1 statement(s), got: ${prog.statements.len}'
 	stmt := prog.statements[0] as ast.ExpressionStatement
 	func := stmt.expression as ast.FunctionLiteral
-	assert func.parameters.len == 2, 'function literal params wrong. want 2, got: ${func.parameters.len}'
-	assert literal_expression_test(func.parameters[0], 'x')
-	assert literal_expression_test(func.parameters[1], 'y')
+	params := func.parameters or { panic('parameters were expected, got none')}
+	assert params.len == 2, 'function literal params wrong. want 2, got: ${params.len}'
+	assert literal_expression_test(params[0], 'x')
+	assert literal_expression_test(params[1], 'y')
 	assert func.body.statements.len == 1, 'function body statements want 1, got: ${func.body.statements.len}'
 	body_stmt := func.body.statements[0] as ast.ExpressionStatement
 	infix_expression_test(body_stmt.expression, 'x', '+', 'y')

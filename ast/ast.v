@@ -131,7 +131,7 @@ pub struct FunctionLiteral {
 pub:
 	token token.TokenType
 pub mut:
-	parameters []Identifier
+	parameters ?[]Identifier
 	body       BlockStatement
 }
 

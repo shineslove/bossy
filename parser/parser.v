@@ -68,7 +68,6 @@ fn (mut p Parser) find_prefix_parse(tok token.Token) ?Prefixes {
 
 fn (mut p Parser) find_infix_parse(tok token.Token) ?InfixParseFunc {
 	return match tok {
-		.lparen { p.parse_infix_expression }
 		.plus { p.parse_infix_expression }
 		.minus { p.parse_infix_expression }
 		.slash { p.parse_infix_expression }
@@ -77,6 +76,7 @@ fn (mut p Parser) find_infix_parse(tok token.Token) ?InfixParseFunc {
 		.not_eq { p.parse_infix_expression }
 		.lt { p.parse_infix_expression }
 		.gt { p.parse_infix_expression }
+		.lparen { p.parse_call_expression }
 		else { none }
 	}
 }
@@ -114,21 +114,21 @@ fn (mut p Parser) parse_call_expression(function ast.Expression) ast.Expression 
 	return exp
 }
 
-fn (mut p Parser) parse_call_arguments() []ast.Expression {
+fn (mut p Parser) parse_call_arguments() ?[]ast.Expression {
 	mut args := []ast.Expression{}
 	if p.peek_token_is(.rparen) {
 		p.next_token()
 		return args
 	}
 	p.next_token()
-	args << p.parse_expression(.lowest) or { panic('first args error') }
+	args << p.parse_expression(.lowest)?
 	for p.peek_token_is(.comma) {
 		p.next_token()
 		p.next_token()
-		args << p.parse_expression(.lowest) or { panic('second args error') }
+		args << p.parse_expression(.lowest)?
 	}
 	if !p.expect_peek(.rparen) {
-		return []
+		return none
 	}
 	return args
 }
@@ -326,24 +326,16 @@ fn (mut p Parser) parse_expression(precedence Precedence) ?ast.Expression {
 		p.errors << 'no prefix parse func for ${p.curr_token.@type} found'
 		return none
 	}
-	if prefix is PrefixParseFunc {
-		mut left_exp := prefix()
-		for !p.peek_token_is(.semicolon) && int(precedence) < int(p.peek_precedence()) {
-			infix := p.find_infix_parse(p.peek_token.@type) or { return left_exp }
-			p.next_token()
-			left_exp = infix(left_exp)
-		}
-		return left_exp
-	} else if prefix is PrefixParseFuncOptional {
-		mut left_exp := prefix()?
-		for !p.peek_token_is(.semicolon) && int(precedence) < int(p.peek_precedence()) {
-			infix := p.find_infix_parse(p.peek_token.@type) or { return left_exp }
-			p.next_token()
-			left_exp = infix(left_exp)
-		}
-		return left_exp
+	mut left_exp := match prefix {
+		PrefixParseFunc { prefix() }
+		PrefixParseFuncOptional { prefix()? }
 	}
-	return none
+	for !p.peek_token_is(.semicolon) && int(precedence) < int(p.peek_precedence()) {
+		infix := p.find_infix_parse(p.peek_token.@type) or { return left_exp }
+		p.next_token()
+		left_exp = infix(left_exp)
+	}
+	return left_exp
 }
 
 fn (mut p Parser) parse_prefix_expression() ast.Expression {

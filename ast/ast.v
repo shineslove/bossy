@@ -158,7 +158,7 @@ pub:
 	token    token.TokenType
 	function Expression
 pub mut:
-	arguments []Expression
+	arguments ?[]Expression
 }
 
 fn (ce CallExpression) token_literal() string {

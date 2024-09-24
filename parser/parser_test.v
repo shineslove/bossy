@@ -75,10 +75,11 @@ fn test_call_expression_parsing() {
 	stmt := prog.statements[0] as ast.ExpressionStatement
 	exp := stmt.expression as ast.CallExpression
 	assert check_identifier(exp.function, 'add')
-	assert exp.arguments.len == 3, 'wrong len of args. got: ${exp.arguments.len}'
-	literal_expression_test(exp.arguments[0], 1)
-	infix_expression_test(exp.arguments[1], 2, '*', 3)
-	infix_expression_test(exp.arguments[2], 4, '+', 5)
+	args := exp.arguments or { panic('arguments not found') }
+	assert args.len == 3, 'wrong len of args. got: ${args.len}'
+	literal_expression_test(args[0], 1)
+	infix_expression_test(args[1], 2, '*', 3)
+	infix_expression_test(args[2], 4, '+', 5)
 }
 
 fn test_function_parameter_parsing() {

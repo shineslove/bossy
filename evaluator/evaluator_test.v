@@ -9,6 +9,29 @@ struct EvalIntTests {
 	expected int
 }
 
+struct EvalBoolTests {
+	input    string
+	expected bool
+}
+
+fn test_eval_boolean_expression() {
+	tsts := [
+		EvalBoolTests{
+			input:    'true'
+			expected: true
+		},
+		EvalBoolTests{
+			input:    'false'
+			expected: false
+		},
+	]
+	for tst in tsts {
+		evaluated := eval_test(tst.input)
+		assert evaluated != none, 'object is not Boolean, got ${evaluated}'
+		assert boolean_object_test(evaluated?, tst.expected)
+	}
+}
+
 fn test_eval_integer_expression() {
 	tsts := [
 		EvalIntTests{
@@ -32,6 +55,12 @@ fn eval_test(input string) ?object.Object {
 	mut par := parser.Parser.new(lex)
 	prog := par.parse_program()
 	return eval(prog)
+}
+
+fn boolean_object_test(obj object.Object, expected bool) bool {
+	res := obj as object.Boolean
+	assert res.value == expected, 'object has wrong val, got: ${res.value}, wanted: ${expected}'
+	return true
 }
 
 fn int_object_test(obj object.Object, expected int) bool {

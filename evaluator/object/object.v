@@ -34,6 +34,7 @@ fn (itr Integer) str() string {
 }
 
 pub struct Boolean {
+pub:
 	value bool
 }
 

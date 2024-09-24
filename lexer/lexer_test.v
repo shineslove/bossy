@@ -1,7 +1,6 @@
-module main
+module lexer
 
-import lexer { Lexer }
-import lexer.token as t
+import token as t
 
 fn test_next_token() {
 	input := 'let five = 5;

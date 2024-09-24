@@ -6,7 +6,6 @@ fun cleanUp() {
     home.exists()
     contents = home.ls()
 }
-
 fun newline<windows>() {
     println('hello')
 }
@@ -39,8 +38,8 @@ fun checkInstallation() {
         return .fail
     }
     shell = @htop | @sed(n=1,s="|").replace('yes','nohl') | echo
-    @bash(htop | @sed.n(1).s('yes','nohl') | echo)!
     # don't allow boushisms in raw
+    @bash(htop | @sed.n(1).s('yes','nohl') | echo)!
     @raw(htop | sed -n 1 | echo)!!
     return output | @sed(n=1) | @cut(d=",") , .success
 }

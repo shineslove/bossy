@@ -170,19 +170,19 @@ fn test_operator_precedence_parsing() {
 
 fn test_parsing_prefix_expressions() {
 	inputs := [PrefixTests{
-		input:    '!5;'
+		input:    '!5'
 		operator: '!'
 		value:    5
 	}, PrefixTests{
-		input:    '-15;'
+		input:    '-15'
 		operator: '-'
 		value:    15
 	}, PrefixTests{
-		input:    '!true;'
+		input:    '!true'
 		operator: '!'
 		value:    true
 	}, PrefixTests{
-		input:    '!false;'
+		input:    '!false'
 		operator: '!'
 		value:    false
 	}]

@@ -51,7 +51,6 @@ mut:
 }
 
 fn (mut p Parser) find_prefix_parse(tok token.Token) ?Prefixes {
-	// had to add parser to heap after this one
 	return match tok {
 		.ident { p.parse_identifier }
 		.integer { p.parse_integer_literal }
@@ -96,7 +95,6 @@ fn (p Parser) curr_precedence() Precedence {
 }
 
 pub fn Parser.new(lex lexer.Lexer) &Parser {
-	// TODO: look into match token func instead of map
 	mut par := &Parser{
 		lex: lex
 	}
@@ -148,7 +146,7 @@ fn (mut p Parser) parse_function_literal() ?ast.Expression {
 	return lit
 }
 
-fn (mut p Parser) parse_function_parameters() []ast.Identifier {
+fn (mut p Parser) parse_function_parameters() ?[]ast.Identifier {
 	mut identifiers := []ast.Identifier{}
 	if p.peek_token_is(.rparen) {
 		p.next_token()
@@ -168,8 +166,7 @@ fn (mut p Parser) parse_function_parameters() []ast.Identifier {
 		}
 	}
 	if !p.expect_peek(.rparen) {
-		// should be none
-		return []
+		return none
 	}
 	return identifiers
 }
@@ -193,7 +190,7 @@ fn (mut p Parser) parse_if_expression() ?ast.Expression {
 	if p.peek_token_is(.@else) {
 		p.next_token()
 		if !p.expect_peek(.lbrace) {
-			return ast.Expression{}
+			return none
 		}
 		exp.alternative = p.parse_block_statement()
 	}

@@ -2,6 +2,8 @@ module ast
 
 import lexer.token
 
+pub type Node = Program | Statement | Expression
+
 // no match on str: made it segfault, too much recursions?  (no error)
 pub type Statement = LetStatement | ReturnStatement | ExpressionStatement | BlockStatement
 

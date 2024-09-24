@@ -1,8 +1,10 @@
 module repl
 
 import readline
+import strings
 import lexer
 import parser
+import evaluator
 
 // R.P.P.L for outputting 'Monkey'
 pub fn start() {
@@ -20,13 +22,18 @@ pub fn start() {
 			print_parser_errors(par.errors())
 			continue
 		}
-		println('${prog}\n')
+		evaluated := evaluator.eval(prog)
+		if evaluated != none {
+			println('${evaluated.inspect()}\n')
+		}
 	}
 }
 
 fn print_parser_errors(errors []string) {
-	println('🐒🐒🐒🐒')
-	println('Woops! We ran into some monkey business here!')
+	err_msg := 'Woops! We ran into some monkey business here!' 
+	// creating enough monkeys for length of string
+	println(strings.repeat_string('🐒', err_msg.len / 2))
+	println(err_msg)
 	println(' parser errors:')
 	for e in errors {
 		println('\t${e}\n')

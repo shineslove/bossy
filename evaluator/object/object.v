@@ -3,25 +3,29 @@ module object
 enum Obj {
 	integer
 	boolean
+	null
 }
 
-type Object = Integer | Boolean
+pub type Object = Integer | Boolean | Null
 
 fn (ob Object) kind() Obj {
 	return match ob {
 		Integer { .integer }
 		Boolean { .boolean }
+		Null { .null }
 	}
 }
 
-fn (ob Object) inspect() string {
+pub fn (ob Object) inspect() string {
 	return match ob {
 		Integer { ob.str() }
 		Boolean { ob.str() }
+		Null { ob.str() }
 	}
 }
 
-struct Integer {
+pub struct Integer {
+pub:
 	value int
 }
 
@@ -29,10 +33,16 @@ fn (itr Integer) str() string {
 	return itr.value.str()
 }
 
-struct Boolean {
+pub struct Boolean {
 	value bool
 }
 
 fn (boo Boolean) str() string {
 	return boo.value.str()
+}
+
+pub struct Null {}
+
+fn (nul Null) str() string {
+	return 'null'
 }

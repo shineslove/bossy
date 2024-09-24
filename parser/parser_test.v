@@ -104,7 +104,7 @@ fn test_function_parameter_parsing() {
 		check_parser_errors(par)
 		stmt := prog.statements[0] as ast.ExpressionStatement
 		function := stmt.expression as ast.FunctionLiteral
-		params := function.parameters or { panic('parameters were expected')}
+		params := function.parameters or { panic('parameters were expected') }
 		assert params.len == tst.expected_params.len, 'length params wrong. want ${tst.expected_params.len}, ${params.len}'
 		for idx, ident in tst.expected_params {
 			literal_expression_test(params[idx], ident)
@@ -121,7 +121,7 @@ fn test_function_literal_parsing() {
 	assert prog.statements.len == 1, 'prog doesnt have 1 statement(s), got: ${prog.statements.len}'
 	stmt := prog.statements[0] as ast.ExpressionStatement
 	func := stmt.expression as ast.FunctionLiteral
-	params := func.parameters or { panic('parameters were expected, got none')}
+	params := func.parameters or { panic('parameters were expected, got none') }
 	assert params.len == 2, 'function literal params wrong. want 2, got: ${params.len}'
 	assert literal_expression_test(params[0], 'x')
 	assert literal_expression_test(params[1], 'y')
@@ -148,8 +148,8 @@ fn test_operator_precedence_parsing() {
 		['5 > 4 == 3 < 4', '((5 > 4) == (3 < 4))'],
 		['5 < 4 != 3 > 4', '((5 < 4) != (3 > 4))'],
 		['3 + 4 * 5 == 3 * 1 + 4 * 5', '((3 + (4 * 5)) == ((3 * 1) + (4 * 5)))'],
-		['true;', 'true'],
-		['false;', 'false'],
+		['true', 'true'],
+		['false', 'false'],
 		['3 > 5 == false', '((3 > 5) == false)'],
 		['3 < 5 == true', '((3 < 5) == true)'],
 		['1 + (2 + 3) + 4', '((1 + (2 + 3)) + 4)'],

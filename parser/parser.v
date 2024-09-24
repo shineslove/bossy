@@ -179,7 +179,7 @@ fn (mut p Parser) parse_if_expression() ?ast.Expression {
 		return none
 	}
 	p.next_token()
-	exp.condition = p.parse_expression(.lowest) or { panic('condition not found') }
+	exp.condition = p.parse_expression(.lowest)?
 	if !p.expect_peek(.rparen) {
 		return none
 	}
@@ -255,12 +255,16 @@ fn (mut p Parser) next_token() {
 pub fn (mut p Parser) parse_program() ast.Program {
 	mut program := ast.Program{}
 	program.statements = []ast.Statement{}
-	for !p.peek_token_is(.eof) {
+	// apparently Go just evals once??
+	for {
 		stmt := p.parse_statement()
 		if stmt != none {
 			program.statements << stmt
 		}
 		p.next_token()
+		if p.peek_token_is(.eof) {
+			break
+		}
 	}
 	return program
 }

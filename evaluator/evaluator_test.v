@@ -29,6 +29,74 @@ fn test_eval_boolean_expression() {
 			input:    'false'
 			expected: false
 		},
+		EvalBoolTests{
+			input:    '1 < 2'
+			expected: true
+		},
+		EvalBoolTests{
+			input:    '1 > 2'
+			expected: false
+		},
+		EvalBoolTests{
+			input:    '1 < 1'
+			expected: false
+		},
+		EvalBoolTests{
+			input:    '1 > 1'
+			expected: false
+		},
+		EvalBoolTests{
+			input:    '1 == 1'
+			expected: true
+		},
+		EvalBoolTests{
+			input:    '1 != 1'
+			expected: false
+		},
+		EvalBoolTests{
+			input:    '1 == 2'
+			expected: false
+		},
+		EvalBoolTests{
+			input:    '1 != 2'
+			expected: true
+		},
+		EvalBoolTests{
+			input:    'true == true'
+			expected: true
+		},
+		EvalBoolTests{
+			input:    'false == false'
+			expected: true
+		},
+		EvalBoolTests{
+			input:    'true == false'
+			expected: false
+		},
+		EvalBoolTests{
+			input:    'true != false'
+			expected: true
+		},
+		EvalBoolTests{
+			input:    'false != true'
+			expected: true
+		},
+		EvalBoolTests{
+			input:    '(1 < 2) == true'
+			expected: true
+		},
+		EvalBoolTests{
+			input:    '(1 < 2) == false'
+			expected: false
+		},
+		EvalBoolTests{
+			input:    '(1 > 2) == true'
+			expected: false
+		},
+		EvalBoolTests{
+			input:    '(1 > 2) == false'
+			expected: true
+		},
 	]
 	for tst in tsts {
 		evaluated := eval_test(tst.input)
@@ -70,6 +138,50 @@ fn test_eval_integer_expression() {
 		EvalIntTests{
 			input:    '-10'
 			expected: -10
+		},
+		EvalIntTests{
+			input:    '5 + 5 + 5 + 5 - 10'
+			expected: 10
+		},
+		EvalIntTests{
+			input:    '2 * 2 * 2 * 2 * 2'
+			expected: 32
+		},
+		EvalIntTests{
+			input:    '-50 + 100 + -50'
+			expected: 0
+		},
+		EvalIntTests{
+			input:    '5 * 2 + 10'
+			expected: 20
+		},
+		EvalIntTests{
+			input:    '5 + 2 * 10'
+			expected: 25
+		},
+		EvalIntTests{
+			input:    '20 + 2 * -10'
+			expected: 0
+		},
+		EvalIntTests{
+			input:    '50 / 2 * 2 + 10'
+			expected: 60
+		},
+		EvalIntTests{
+			input:    '2 * (5 + 10)'
+			expected: 30
+		},
+		EvalIntTests{
+			input:    '3 * 3 * 3 + 10'
+			expected: 37
+		},
+		EvalIntTests{
+			input:    '3 * (3 * 3) + 10'
+			expected: 37
+		},
+		EvalIntTests{
+			input:    '(5 + 10 * 2 + 15 / 3) * 2 + -10'
+			expected: 50
 		},
 	]
 	for tst in tsts {

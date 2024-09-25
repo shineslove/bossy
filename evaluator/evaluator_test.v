@@ -19,6 +19,56 @@ struct BangTests {
 	expected bool
 }
 
+struct EvalIfTests {
+	input    string
+	expected ?int
+}
+
+fn test_if_else_expressions() {
+	tsts := [
+		EvalIfTests{
+			input:    'if (true) { 10 }'
+			expected: 10
+		},
+		EvalIfTests{
+			input:    'if (false) { 10 }'
+			expected: none
+		},
+		EvalIfTests{
+			input:    'if (1) { 10 }'
+			expected: 10
+		},
+		EvalIfTests{
+			input:    'if (1 < 2) { 10 }'
+			expected: 10
+		},
+		EvalIfTests{
+			input:    'if (1 > 2) { 10 }'
+			expected: none
+		},
+		EvalIfTests{
+			input:    'if (1 > 2) { 10 } else { 20 }'
+			expected: 20
+		},
+		EvalIfTests{
+			input:    'if (1 < 2) { 10 } else { 20 }'
+			expected: 10
+		},
+	]
+	for tst in tsts {
+		evaluated := eval_test(tst.input)
+		int_opt := tst.expected
+		if int_opt != none {
+			integer := int_opt as int
+			int_object_test(evaluated or {
+				panic("didnt work bud -> val'd: ${evaluated} opt: ${int_opt}")
+			}, integer)
+		} else {
+			null_object_test(evaluated?)
+		}
+	}
+}
+
 fn test_eval_boolean_expression() {
 	tsts := [
 		EvalBoolTests{
@@ -207,5 +257,11 @@ fn boolean_object_test(obj object.Object, expected bool) bool {
 fn int_object_test(obj object.Object, expected int) bool {
 	res := obj as object.Integer
 	assert res.value == expected, 'object has wrong val, got: ${res.value}, wanted: ${expected}'
+	return true
+}
+
+fn null_object_test(obj object.Object) bool {
+	_ := obj as object.Null
+	// {panic('object is not null, got: ${obj} (${typeof(obj).name})')}
 	return true
 }

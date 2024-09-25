@@ -48,6 +48,9 @@ pub fn eval(node ast.Node) ?object.Object {
 					right := eval(node.right?)
 					eval_infix_expression(node.operator, left?, right?)
 				}
+				ast.IfExpression {
+					eval_if_expression(node)
+				}
 				else {
 					none
 				}
@@ -60,6 +63,9 @@ pub fn eval(node ast.Node) ?object.Object {
 			}
 		}
 		ast.Program {
+			eval_statements(node.statements)
+		}
+		ast.BlockStatement {
 			eval_statements(node.statements)
 		}
 	}
@@ -118,6 +124,17 @@ fn eval_integer_infix_expression(operator string, left object.Object, right obje
 	}
 }
 
+fn eval_if_expression(ie ast.IfExpression) ?object.Object {
+	condition := eval(ie.condition)
+	if is_truthy(condition?) {
+		return eval(ie.consequence)
+	} else if ie.alternative != none {
+		return eval(ie.alternative?)
+	} else {
+		return null
+	}
+}
+
 fn eval_prefix_expression(operator string, right object.Object) object.Object {
 	return match operator {
 		'!' { eval_bang_operator_expression(right) }
@@ -133,6 +150,23 @@ fn eval_minus_operator_expression(right object.Object) object.Object {
 	value := (right as object.Integer).value
 	return object.Integer{
 		value: -value
+	}
+}
+
+fn is_truthy(obj object.Object) bool {
+	return match obj {
+		object.Boolean {
+			match obj {
+				truth { true }
+				else { false }
+			}
+		}
+		object.Null {
+			false
+		}
+		else {
+			true
+		}
 	}
 }
 

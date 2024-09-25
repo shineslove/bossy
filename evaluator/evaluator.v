@@ -58,17 +58,51 @@ pub fn eval(node ast.Node) ?object.Object {
 		}
 		ast.Statement {
 			match node {
-				ast.ExpressionStatement { eval(node.expression) }
-				else { none }
+				ast.ExpressionStatement {
+					eval(node.expression)
+				}
+				ast.ReturnStatement {
+					val := eval(node.return_value?)?
+					obj := object.Return{
+						value: val
+					}
+					return_obj(obj)
+				}
+				else {
+					none
+				}
 			}
 		}
 		ast.Program {
-			eval_statements(node.statements)
+			eval_program(node)
 		}
 		ast.BlockStatement {
-			eval_statements(node.statements)
+			eval_block_statement(node)
 		}
 	}
+}
+
+fn eval_block_statement(block ast.BlockStatement) ?object.Object {
+	mut result := object.Object{}
+	for stmt in block.statements {
+		result = eval(stmt)?
+		if result.kind() == .@return {
+			return result
+		}
+	}
+	return result
+}
+
+fn eval_program(prog ast.Program) ?object.Object {
+	mut result := object.Object{}
+	for stmt in prog {
+		result = eval(stmt)?
+		if result is object.Return {
+			return_value := result as object.Return
+			return return_value.value
+		}
+	}
+	return result
 }
 
 fn eval_infix_expression(operator string, left object.Object, right object.Object) object.Object {
@@ -192,6 +226,10 @@ fn eval_statements(stmts []ast.Statement) ?object.Object {
 	mut result := object.Object{}
 	for stmt in stmts {
 		result = eval(stmt)?
+		if result is object.Return {
+			return_value := result as object.Return
+			return return_value.value
+		}
 	}
 	return result
 }

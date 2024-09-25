@@ -24,6 +24,11 @@ struct EvalIfTests {
 	expected ?int
 }
 
+struct EvalReturnTests {
+	input    string
+	expected int
+}
+
 fn test_if_else_expressions() {
 	tsts := [
 		EvalIfTests{
@@ -61,7 +66,7 @@ fn test_if_else_expressions() {
 		if int_opt != none {
 			integer := int_opt as int
 			int_object_test(evaluated or {
-				panic("didnt work bud -> val'd: ${evaluated} opt: ${int_opt}")
+				panic('didnt work bud -> val: ${evaluated} opt: ${int_opt}')
 			}, integer)
 		} else {
 			null_object_test(evaluated?)
@@ -232,6 +237,36 @@ fn test_eval_integer_expression() {
 		EvalIntTests{
 			input:    '(5 + 10 * 2 + 15 / 3) * 2 + -10'
 			expected: 50
+		},
+	]
+	for tst in tsts {
+		evaluated := eval_test(tst.input)
+		assert evaluated != none, 'object is not Integer, got ${evaluated}'
+		assert int_object_test(evaluated?, tst.expected)
+	}
+}
+
+fn test_return_statements() {
+	tsts := [
+		EvalReturnTests{
+			input:    'return 10;'
+			expected: 10
+		},
+		EvalReturnTests{
+			input:    'return 10; 9;'
+			expected: 10
+		},
+		EvalReturnTests{
+			input:    'return 2 * 5; 9;'
+			expected: 10
+		},
+		EvalReturnTests{
+			input:    '9; return 2 * 5; 9;'
+			expected: 10
+		},
+		EvalReturnTests{
+			input:    'if (10 > 1) { if (10 > 1) { return 10; } return 1;}'
+			expected: 10
 		},
 	]
 	for tst in tsts {

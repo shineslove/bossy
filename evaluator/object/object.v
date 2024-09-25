@@ -4,15 +4,17 @@ pub enum Obj {
 	integer
 	boolean
 	null
+	@return
 }
 
-pub type Object = Integer | Boolean | Null
+pub type Object = Integer | Boolean | Null | Return
 
 pub fn (ob Object) kind() Obj {
 	return match ob {
 		Integer { .integer }
 		Boolean { .boolean }
 		Null { .null }
+		Return { .@return }
 	}
 }
 
@@ -21,6 +23,7 @@ pub fn (ob Object) inspect() string {
 		Integer { ob.str() }
 		Boolean { ob.str() }
 		Null { ob.str() }
+		Return { ob.str() }
 	}
 }
 
@@ -46,4 +49,13 @@ pub struct Null {}
 
 fn (nul Null) str() string {
 	return 'null'
+}
+
+pub struct Return {
+pub:
+	value Object
+}
+
+fn (rt Return) str() string {
+	return rt.value.inspect()
 }

@@ -99,29 +99,6 @@ pub fn eval(node ast.Node, mut env object.Environment) ?object.Object {
 				ast.Identifier {
 					eval_identifier(node, env)
 				}
-<<<<<<< Updated upstream
-				ast.FunctionLiteral {
-					params := node.parameters
-					body := node.body
-					obj := object.Function{
-						parameters: params?
-						env:        env
-						body:       body
-					}
-					return_obj(obj)
-=======
-				ast.CallExpression {
-					function := eval(node.function, mut env)
-					if is_error(function) {
-						return function
-					}
-					args := eval_expressions(node.arguments, mut env)
-					if args.len == 1 && is_error(args[0]) {
-						return args[0]
-					}
-					return apply_function(function, args)
->>>>>>> Stashed changes
-				}
 				else {
 					none
 				}

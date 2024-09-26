@@ -39,6 +39,16 @@ struct LetTests {
 	expected int
 }
 
+fn test_function_object() {
+	input := "fn(x) { x + 2; };"
+	evaluated := eval_test(input)
+	func := evaluated as object.Function
+	assert func.parameters.len == 1, 'function has wrong params. Parameters: ${func.parameters}'
+	assert '${func.parameters[0]}' == 'x', 'param is not x. got: ${func.parameters[0]}'
+	expected_body := "(x + 2)"
+	assert '${func.body}' == expected_body, 'body is not ${expected_body}. got: ${func.body}'
+}
+
 fn test_let_statements() {
 	tsts := [
 		LetTests{

@@ -1,4 +1,5 @@
 module object
+import ast
 
 pub enum Obj {
 	integer
@@ -6,9 +7,10 @@ pub enum Obj {
 	null
 	@return
 	error
+	function
 }
 
-pub type Object = Integer | Boolean | Null | Return | Err
+pub type Object = Integer | Boolean | Null | Return | Err | Function
 
 pub fn (ob Object) kind() Obj {
 	return match ob {
@@ -17,6 +19,7 @@ pub fn (ob Object) kind() Obj {
 		Null { .null }
 		Return { .@return }
 		Err { .error }
+		Function { .function }
 	}
 }
 
@@ -27,6 +30,7 @@ pub fn (ob Object) inspect() string {
 		Null { ob.str() }
 		Return { ob.str() }
 		Err { ob.str() }
+		Function { ob.str() }
 	}
 }
 
@@ -71,4 +75,28 @@ pub:
 fn (e Err) str() string {
 	return 'ERROR: ${e.message}'
 }
+
+pub struct Function {
+pub:
+	parameters []ast.Identifier
+	body ast.BlockStatement
+	env Environment
+}
+
+fn (fun Function) str() string {
+	mut output := ""
+	mut params := []string{}
+	for param in params {
+		params << param.str()
+	}
+	output += "fn"
+	output += "("
+	output += params.join(', ')
+	output += ") {\n"
+	output += '${fun.body}'
+	output += "\n}"
+	return output
+}
+
+
 

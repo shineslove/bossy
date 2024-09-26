@@ -38,6 +38,29 @@ fn is_error(obj ?object.Object) bool {
 	return false
 }
 
+fn apply_function(fun object.Object, args []object.Object) object.Object {
+	func := fun as object.Function
+	extend_env := extend_function_env(func, args)
+	evaluated := eval(func.body, extend_env)
+	return unwrap_return_val(evaluated)
+}
+
+fn extend_function_env(fun object.Function, args []object.Object) object.Environment {
+	env := object.new_enclosed_environment(fun.env)
+	for param_idx, param in fun.parameters {
+		env.set(param.value, args[param_idx])
+	}
+	return env
+}
+
+fn unwrap_return_val(obj object.Object) object.Object {
+	if obj is object.Return {
+		rv := obj as object.Return
+		return rv.value
+	}
+	return obj
+}
+
 pub fn eval(node ast.Node, mut env object.Environment) ?object.Object {
 	return match node {
 		ast.Expression {
@@ -76,6 +99,7 @@ pub fn eval(node ast.Node, mut env object.Environment) ?object.Object {
 				ast.Identifier {
 					eval_identifier(node, env)
 				}
+<<<<<<< Updated upstream
 				ast.FunctionLiteral {
 					params := node.parameters
 					body := node.body
@@ -85,6 +109,18 @@ pub fn eval(node ast.Node, mut env object.Environment) ?object.Object {
 						body:       body
 					}
 					return_obj(obj)
+=======
+				ast.CallExpression {
+					function := eval(node.function, mut env)
+					if is_error(function) {
+						return function
+					}
+					args := eval_expressions(node.arguments, mut env)
+					if args.len == 1 && is_error(args[0]) {
+						return args[0]
+					}
+					return apply_function(function, args)
+>>>>>>> Stashed changes
 				}
 				else {
 					none
@@ -125,6 +161,18 @@ pub fn eval(node ast.Node, mut env object.Environment) ?object.Object {
 			eval_block_statement(node, mut env)
 		}
 	}
+}
+
+fn eval_expressions(exps []ast.Expression, mut env object.Environment) []object.Object {
+	mut result := []object.Object{}
+	for exp in exps {
+		evaluated := eval(exp, mut env)
+		if is_error(evaluated) {
+			return [evaluated]
+		}
+		result << evaluated or { object.Object{} }
+	}
+	return result
 }
 
 fn eval_identifier(node ast.Identifier, env object.Environment) object.Object {

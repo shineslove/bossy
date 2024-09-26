@@ -38,15 +38,15 @@ fn is_error(obj ?object.Object) bool {
 	return false
 }
 
-fn apply_function(fun object.Object, args []object.Object) object.Object {
+fn apply_function(fun object.Object, args []object.Object) ?object.Object {
 	func := fun as object.Function
-	extend_env := extend_function_env(func, args)
-	evaluated := eval(func.body, extend_env)
-	return unwrap_return_val(evaluated)
+	mut extend_env := extend_function_env(func, args)
+	evaluated := eval(func.body, mut extend_env)
+	return unwrap_return_val(evaluated?)
 }
 
-fn extend_function_env(fun object.Function, args []object.Object) object.Environment {
-	env := object.new_enclosed_environment(fun.env)
+fn extend_function_env(fun object.Function, args []object.Object) &object.Environment {
+	mut env := object.new_enclosed_environment(fun.env)
 	for param_idx, param in fun.parameters {
 		env.set(param.value, args[param_idx])
 	}
@@ -98,6 +98,17 @@ pub fn eval(node ast.Node, mut env object.Environment) ?object.Object {
 				}
 				ast.Identifier {
 					eval_identifier(node, env)
+				}
+				ast.CallExpression {
+					function := eval(node.function, mut env)
+					if is_error(function) {
+						return function
+					}
+					args := eval_expressions(node.arguments, mut env)
+					if args.len == 1 && is_error(args[0]) {
+						return args[0]
+					}
+					return apply_function(function?, args)
 				}
 				else {
 					none

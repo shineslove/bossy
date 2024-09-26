@@ -44,29 +44,47 @@ struct FunctionTests {
 	expected int
 }
 
-fn test_function_application(){
+fn test_function_application() {
 	tsts := [
-		FunctionTests{input: "let identity = fn(x) { x; }; identity(5);" expected: 5},
-		FunctionTests{input: "let identity = fn(x) { return x; }; identity(5);" expected: 5},
-		FunctionTests{input: "let double = fn(x) { x * 2; }; double(5);" expected: 10},
-		FunctionTests{input: "let add = fn(x, y) { x + y; }; add(5, 5);" expected: 10},
-		FunctionTests{input: "let add = fn(x, y) { x + y; }; add(5 + 5, add(5, 5));" expected: 20},
-		FunctionTests{input: "fn(x) { x; }(5)" expected: 5},
+		FunctionTests{
+			input:    'let identity = fn(x) { x; }; identity(5);'
+			expected: 5
+		},
+		FunctionTests{
+			input:    'let identity = fn(x) { return x; }; identity(5);'
+			expected: 5
+		},
+		FunctionTests{
+			input:    'let double = fn(x) { x * 2; }; double(5);'
+			expected: 10
+		},
+		FunctionTests{
+			input:    'let add = fn(x, y) { x + y; }; add(5, 5);'
+			expected: 10
+		},
+		FunctionTests{
+			input:    'let add = fn(x, y) { x + y; }; add(5 + 5, add(5, 5));'
+			expected: 20
+		},
+		FunctionTests{
+			input:    'fn(x) { x; }(5)'
+			expected: 5
+		},
 	]
 	for tst in tsts {
-		evaluated := eval_test(tst.input)
-		assert evaluated != none, 'this test: ${tst.input} returned none'
-		assert int_object_test(evaluated?, tst.expected)
+		evaluated := eval_test(tst.input) or { panic('this test: ${tst.input} returned none') }
+		// panic(evaluated)
+		assert int_object_test(evaluated, tst.expected)
 	}
 }
 
 fn test_function_object() {
-	input := "fn(x) { x + 2; };"
+	input := 'fn(x) { x + 2; };'
 	evaluated := eval_test(input)
 	func := evaluated as object.Function
 	assert func.parameters.len == 1, 'function has wrong params. Parameters: ${func.parameters}'
 	assert '${func.parameters[0]}' == 'x', 'param is not x. got: ${func.parameters[0]}'
-	expected_body := "(x + 2)"
+	expected_body := '(x + 2)'
 	assert '${func.body}' == expected_body, 'body is not ${expected_body}. got: ${func.body}'
 }
 
@@ -398,6 +416,7 @@ fn boolean_object_test(obj object.Object, expected bool) bool {
 }
 
 fn int_object_test(obj object.Object, expected int) bool {
+	panic(obj)
 	res := obj as object.Integer
 	assert res.value == expected, 'object has wrong val, got: ${res.value}, wanted: ${expected}'
 	return true

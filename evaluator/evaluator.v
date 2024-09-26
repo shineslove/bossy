@@ -99,19 +99,26 @@ pub fn eval(node ast.Node, mut env object.Environment) ?object.Object {
 				ast.Identifier {
 					eval_identifier(node, env)
 				}
+				ast.FunctionLiteral {
+					params := node.parameters
+					body := node.body
+					obj := object.Function{
+						parameters: params?
+						env:        env
+						body:       body
+					}
+					return_obj(obj)
+				}
 				ast.CallExpression {
-					function := eval(node.function, mut env)
+					function := eval(node.function, mut env)?
 					if is_error(function) {
 						return function
 					}
-					args := eval_expressions(node.arguments, mut env)
+					args := eval_expressions(node.arguments?, mut env)
 					if args.len == 1 && is_error(args[0]) {
 						return args[0]
 					}
-					return apply_function(function?, args)
-				}
-				else {
-					none
+					return apply_function(function, args)
 				}
 			}
 		}
@@ -154,11 +161,13 @@ pub fn eval(node ast.Node, mut env object.Environment) ?object.Object {
 fn eval_expressions(exps []ast.Expression, mut env object.Environment) []object.Object {
 	mut result := []object.Object{}
 	for exp in exps {
-		evaluated := eval(exp, mut env)
-		if is_error(evaluated) {
-			return [evaluated]
+		if evaluated := eval(exp, mut env) {
+			if is_error(evaluated) {
+				result << evaluated
+				return result
+			}
+			result << evaluated
 		}
-		result << evaluated or { object.Object{} }
 	}
 	return result
 }

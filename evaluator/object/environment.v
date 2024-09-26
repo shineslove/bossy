@@ -11,7 +11,6 @@ pub fn Environment.new() &Environment {
 	st := map[string]Object{}
 	return &Environment{
 		store: st
-		outer: none
 	}
 }
 

@@ -5,11 +5,13 @@ import strings
 import lexer
 import parser
 import evaluator
+import evaluator.object
 
 // R.E.P.L for outputting 'Monkey'
 pub fn start() {
 	prompt := '>> '
 	mut reader := readline.Readline{}
+	mut env := object.Environment.new()
 	for {
 		input := reader.read_line(prompt) or { '' }
 		if input.is_blank() {
@@ -22,7 +24,7 @@ pub fn start() {
 			print_parser_errors(par.errors())
 			continue
 		}
-		evaluated := evaluator.eval(prog)
+		evaluated := evaluator.eval(prog, mut env)
 		if evaluated != none {
 			println('${evaluated.inspect()}\n')
 		}
@@ -30,7 +32,7 @@ pub fn start() {
 }
 
 fn print_parser_errors(errors []string) {
-	err_msg := 'Woops! We ran into some monkey business here!' 
+	err_msg := 'Woops! We ran into some monkey business here!'
 	// creating enough monkeys for length of string
 	println(strings.repeat_string('🐒', err_msg.len / 2))
 	println(err_msg)

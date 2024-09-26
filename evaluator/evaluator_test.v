@@ -29,6 +29,82 @@ struct EvalReturnTests {
 	expected int
 }
 
+struct ErrorTests {
+	input            string
+	expected_message string
+}
+
+struct LetTests {
+	input    string
+	expected int
+}
+
+fn test_let_statements() {
+	tsts := [
+		LetTests{
+			input:    'let a = 5; a;'
+			expected: 5
+		},
+		LetTests{
+			input:    'let a = 5 * 5; a;'
+			expected: 25
+		},
+		LetTests{
+			input:    'let a = 5; let b = a; b;'
+			expected: 5
+		},
+		LetTests{
+			input:    'let a = 5; let b = a; let c = a + b + 5; c;'
+			expected: 15
+		},
+	]
+	for tst in tsts {
+		int_object_test(eval_test(tst.input)?, tst.expected)
+	}
+}
+
+fn test_error_handling() {
+	tsts := [
+		ErrorTests{
+			input:            '5 + true;'
+			expected_message: 'type mismatch: integer + boolean'
+		},
+		ErrorTests{
+			input:            '5 + true; 5;'
+			expected_message: 'type mismatch: integer + boolean'
+		},
+		ErrorTests{
+			input:            '-true'
+			expected_message: 'unknown operator: -boolean'
+		},
+		ErrorTests{
+			input:            'true + false;'
+			expected_message: 'unknown operator: boolean + boolean'
+		},
+		ErrorTests{
+			input:            '5; true + false; 5'
+			expected_message: 'unknown operator: boolean + boolean'
+		},
+		ErrorTests{
+			input:            'if (10 > 1) { true + false; }'
+			expected_message: 'unknown operator: boolean + boolean'
+		},
+		ErrorTests{
+			input:            'if (10 > 1) { if (10 > 1) { return true + false; } return 1;}'
+			expected_message: 'unknown operator: boolean + boolean'
+		},
+		ErrorTests{
+			input:            'foobar'
+			expected_message: 'identifier not found: foobar'
+		},
+	]
+	for tst in tsts {
+		evaluated := eval_test(tst.input)
+		err_obj := evaluated as object.Err
+		assert err_obj.message == tst.expected_message, 'wrong err message. expected: ${tst.expected_message}, got: ${err_obj.message}'
+	}
+}
+
 fn test_if_else_expressions() {
 	tsts := [
 		EvalIfTests{
@@ -280,7 +356,8 @@ fn eval_test(input string) ?object.Object {
 	lex := lexer.Lexer.new(input)
 	mut par := parser.Parser.new(lex)
 	prog := par.parse_program()
-	return eval(prog)
+	mut env := object.Environment.new()
+	return eval(prog, mut env)
 }
 
 fn boolean_object_test(obj object.Object, expected bool) bool {

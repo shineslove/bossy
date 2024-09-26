@@ -5,9 +5,10 @@ pub enum Obj {
 	boolean
 	null
 	@return
+	error
 }
 
-pub type Object = Integer | Boolean | Null | Return
+pub type Object = Integer | Boolean | Null | Return | Err
 
 pub fn (ob Object) kind() Obj {
 	return match ob {
@@ -15,6 +16,7 @@ pub fn (ob Object) kind() Obj {
 		Boolean { .boolean }
 		Null { .null }
 		Return { .@return }
+		Err { .error }
 	}
 }
 
@@ -24,6 +26,7 @@ pub fn (ob Object) inspect() string {
 		Boolean { ob.str() }
 		Null { ob.str() }
 		Return { ob.str() }
+		Err { ob.str() }
 	}
 }
 
@@ -59,3 +62,13 @@ pub:
 fn (rt Return) str() string {
 	return rt.value.inspect()
 }
+
+pub struct Err {
+pub:
+	message string
+}
+
+fn (e Err) str() string {
+	return 'ERROR: ${e.message}'
+}
+

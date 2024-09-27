@@ -44,6 +44,17 @@ struct FunctionTests {
 	expected int
 }
 
+fn test_closures() {
+	input := '
+	  let newAdder = fn(x) {
+	     fn(y) { x + y };
+	  };
+	  let addTwo = newAdder(2);
+	  addTwo(2);
+	'
+	assert int_object_test(eval_test(input)?, 4)
+}
+
 fn test_function_application() {
 	tsts := [
 		FunctionTests{

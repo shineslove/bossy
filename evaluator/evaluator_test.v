@@ -83,7 +83,7 @@ fn test_function_application() {
 		},
 	]
 	for tst in tsts {
-		evaluated := eval_test(tst.input) or { panic('this test: ${tst.input} returned none') }
+		evaluated := eval_test(tst.input)?
 		assert int_object_test(evaluated, tst.expected)
 	}
 }
@@ -432,7 +432,7 @@ fn int_object_test(obj object.Object, expected int) bool {
 }
 
 fn null_object_test(obj object.Object) bool {
+	// custom error for cast fails?
 	_ := obj as object.Null
-	// {panic('object is not null, got: ${obj} (${typeof(obj).name})')}
 	return true
 }

@@ -1,4 +1,5 @@
 module object
+
 import ast
 
 pub enum Obj {
@@ -10,7 +11,7 @@ pub enum Obj {
 	function
 }
 
-pub type Object = Integer | Boolean | Null | Return | Err | Function
+pub type Object = Null | Integer | Boolean | Return | Err | Function
 
 pub fn (ob Object) kind() Obj {
 	return match ob {
@@ -79,24 +80,21 @@ fn (e Err) str() string {
 pub struct Function {
 pub:
 	parameters []ast.Identifier
-	body ast.BlockStatement
-	env Environment
+	body       ast.BlockStatement
+	env        Environment
 }
 
 fn (fun Function) str() string {
-	mut output := ""
+	mut output := ''
 	mut params := []string{}
 	for param in params {
 		params << param.str()
 	}
-	output += "fn"
-	output += "("
+	output += 'fn'
+	output += '('
 	output += params.join(', ')
-	output += ") {\n"
+	output += ') {\n'
 	output += '${fun.body}'
-	output += "\n}"
+	output += '\n}'
 	return output
 }
-
-
-

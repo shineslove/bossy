@@ -21,7 +21,6 @@ fn native_bool_to_boolean_object(input bool) object.Boolean {
 }
 
 fn return_obj(obj object.Object) object.Object {
-	// V wasn't letting me return object.Int and object.Bool
 	return obj
 }
 
@@ -118,7 +117,7 @@ pub fn eval(node ast.Node, mut env object.Environment) ?object.Object {
 					if args.len == 1 && is_error(args[0]) {
 						return args[0]
 					}
-					return apply_function(function, args)
+					apply_function(function, args)
 				}
 			}
 		}

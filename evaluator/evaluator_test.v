@@ -73,7 +73,6 @@ fn test_function_application() {
 	]
 	for tst in tsts {
 		evaluated := eval_test(tst.input) or { panic('this test: ${tst.input} returned none') }
-		// panic(evaluated)
 		assert int_object_test(evaluated, tst.expected)
 	}
 }
@@ -416,7 +415,6 @@ fn boolean_object_test(obj object.Object, expected bool) bool {
 }
 
 fn int_object_test(obj object.Object, expected int) bool {
-	panic(obj)
 	res := obj as object.Integer
 	assert res.value == expected, 'object has wrong val, got: ${res.value}, wanted: ${expected}'
 	return true

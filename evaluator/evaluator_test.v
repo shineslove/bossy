@@ -44,6 +44,13 @@ struct FunctionTests {
 	expected int
 }
 
+fn test_string_literal() {
+	input := '"Hello World!"'
+	evaluated := eval_test(input)
+	st := evaluated as object.String
+	assert st.value == 'Hello World!', 'String was wrong value. got: ${st.value}'
+}
+
 fn test_closures() {
 	input := '
 	  let newAdder = fn(x) {
@@ -79,6 +86,10 @@ fn test_function_application() {
 		},
 		FunctionTests{
 			input:    'fn(x) { x; }(5)'
+			expected: 5
+		},
+		FunctionTests{
+			input:    'fn() { 5; }()'
 			expected: 5
 		},
 	]

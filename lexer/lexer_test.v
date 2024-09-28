@@ -2,6 +2,11 @@ module lexer
 
 import token as t
 
+struct TokenTests {
+	expected_type    t.Token
+	expected_literal string
+}
+
 fn test_next_token() {
 	input := 'let five = 5;
     let ten = 10;
@@ -102,5 +107,28 @@ fn test_next_token() {
 	for typ in tests {
 		tok := lex.next_token()
 		assert tok.@type == typ, 'test for type failed ${tok.value}'
+	}
+}
+
+fn test_literal_tokens() {
+	literal_input := '
+	    "foobar"
+	    "foo bar"
+	'
+	literal_tests := [
+		TokenTests{
+			expected_type:    .string
+			expected_literal: 'foobar'
+		},
+		TokenTests{
+			expected_type:    .string
+			expected_literal: 'foo bar'
+		},
+	]
+	mut literal_lex := Lexer.new(literal_input)
+	for lit_typ in literal_tests {
+		lit_tok := literal_lex.next_token()
+		assert lit_tok.@type == lit_typ.expected_type, 'test for type failed ${lit_tok.@type}'
+		assert lit_tok.value == lit_typ.expected_literal, 'test for literal failed ${lit_tok.value}'
 	}
 }

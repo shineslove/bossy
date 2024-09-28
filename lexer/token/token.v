@@ -27,6 +27,7 @@ pub enum Token {
 	@else
 	@return
 	eof
+	string
 	illegal
 }
 

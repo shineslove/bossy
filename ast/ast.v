@@ -180,6 +180,20 @@ fn (ce CallExpression) str() string {
 	return output
 }
 
+pub struct StringLiteral {
+pub:
+	token token.TokenType
+	value string
+}
+
+fn (sl StringLiteral) token_literal() string {
+	return sl.token.value
+}
+
+fn (sl StringLiteral) str() string {
+	return sl.token.value
+}
+
 pub type Expression = Identifier
 	| IntegerLiteral
 	| PrefixExpression
@@ -188,6 +202,7 @@ pub type Expression = Identifier
 	| IfExpression
 	| FunctionLiteral
 	| CallExpression
+	| StringLiteral
 
 pub fn (exp Expression) token_literal() string {
 	return match exp {
@@ -199,6 +214,7 @@ pub fn (exp Expression) token_literal() string {
 		IfExpression { exp.token_literal() }
 		FunctionLiteral { exp.token_literal() }
 		CallExpression { exp.token_literal() }
+		StringLiteral { exp.token_literal() }
 	}
 }
 
@@ -212,6 +228,7 @@ pub fn (exp Expression) str() string {
 		IfExpression { '${exp.str()}' }
 		FunctionLiteral { '${exp.str()}' }
 		CallExpression { '${exp.str()}' }
+		StringLiteral { '${exp.str()}' }
 	}
 }
 

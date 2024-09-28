@@ -114,10 +114,16 @@ pub fn eval(node ast.Node, mut env object.Environment) ?object.Object {
 						return function
 					}
 					args := eval_expressions(node.arguments?, mut env)
-					if args.len == 1 && is_error(args[0]) {
-						return args[0]
+					if args.len > 0 {
+						// V tries to access args here for some reason
+						if args.len == 1 && is_error(args[0]) {
+							return args[0]
+						}
 					}
 					apply_function(function, args)
+				}
+				ast.StringLiteral {
+					return_obj(object.String{ value: node.value })
 				}
 			}
 		}

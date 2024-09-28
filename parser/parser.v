@@ -61,6 +61,7 @@ fn (mut p Parser) find_prefix_parse(tok token.Token) ?Prefixes {
 		.lparen { p.parse_grouped_expression }
 		.@if { p.parse_if_expression }
 		.function { p.parse_function_literal }
+		.string { p.parse_string_literal }
 		else { none }
 	}
 }
@@ -101,6 +102,13 @@ pub fn Parser.new(lex lexer.Lexer) &Parser {
 	par.next_token()
 	par.next_token()
 	return par
+}
+
+fn (mut p Parser) parse_string_literal() ast.Expression {
+	return ast.StringLiteral{
+		token: p.curr_token
+		value: p.curr_token.value
+	}
 }
 
 fn (mut p Parser) parse_call_expression(function ast.Expression) ast.Expression {

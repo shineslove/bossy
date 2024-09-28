@@ -9,9 +9,10 @@ pub enum Obj {
 	@return
 	error
 	function
+	string
 }
 
-pub type Object = Null | Integer | Boolean | Return | Err | Function
+pub type Object = Null | String | Integer | Boolean | Return | Err | Function
 
 pub fn (ob Object) kind() Obj {
 	return match ob {
@@ -21,6 +22,7 @@ pub fn (ob Object) kind() Obj {
 		Return { .@return }
 		Err { .error }
 		Function { .function }
+		String { .string }
 	}
 }
 
@@ -32,7 +34,17 @@ pub fn (ob Object) inspect() string {
 		Return { ob.str() }
 		Err { ob.str() }
 		Function { ob.str() }
+		String { ob.str() }
 	}
+}
+
+pub struct String {
+pub:
+	value string
+}
+
+fn (st String) str() string {
+	return st.value.str()
 }
 
 pub struct Integer {

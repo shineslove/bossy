@@ -65,6 +65,17 @@ fn check_boolean(exp ast.Expression, value bool) bool {
 	return true
 }
 
+fn test_string_literal_expression() {
+	input := '"hello world"'
+	lex := lexer.Lexer.new(input)
+	mut par := Parser.new(lex)
+	prog := par.parse_program()
+	check_parser_errors(par)
+	stmt := prog.statements[0] as ast.ExpressionStatement
+	literal := stmt.expression as ast.StringLiteral
+	assert literal.value == 'hello world', 'literal val not "hello world". got: ${literal.value}'
+}
+
 fn test_call_expression_parsing() {
 	input := 'add(1, 2 * 3, 4 + 5);'
 	lex := lexer.Lexer.new(input)

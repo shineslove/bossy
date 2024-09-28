@@ -80,6 +80,17 @@ fn (mut lex Lexer) next() ?TokenType {
 	return tok
 }
 
+fn (mut lex Lexer) read_string() string {
+	position := lex.position + 1
+	for {
+		lex.read_char()
+		if lex.ch == `"` || lex.ch == 0 {
+			break
+		}
+	}
+	return lex.input[position..lex.position]
+}
+
 pub fn (mut lex Lexer) next_token() TokenType {
 	lex.skip_whitespace()
 	tok := match lex.ch {
@@ -187,6 +198,12 @@ pub fn (mut lex Lexer) next_token() TokenType {
 			TokenType{
 				value: lex.ch.str()
 				@type: .rbrace
+			}
+		}
+		`"` {
+			TokenType{
+				value: lex.read_string()
+				@type: .string
 			}
 		}
 		0 {

@@ -38,10 +38,21 @@ fn is_error(obj ?object.Object) bool {
 }
 
 fn apply_function(fun object.Object, args []object.Object) ?object.Object {
-	func := fun as object.Function
-	mut extend_env := extend_function_env(func, args)
-	evaluated := eval(func.body, mut extend_env)
-	return unwrap_return_val(evaluated?)
+	return match fun {
+		object.Function {
+			func := fun as object.Function
+			mut extend_env := extend_function_env(func, args)
+			evaluated := eval(func.body, mut extend_env)
+			unwrap_return_val(evaluated?)
+		}
+		object.Builtin {
+			fun.func(...args)
+		}
+		else {
+			obj := new_error('not a function', '${fun.kind()}')
+			return_obj(obj)
+		}
+	}
 }
 
 fn extend_function_env(fun object.Function, args []object.Object) &object.Environment {
@@ -178,6 +189,9 @@ fn eval_expressions(exps []ast.Expression, mut env object.Environment) []object.
 }
 
 fn eval_identifier(node ast.Identifier, env object.Environment) object.Object {
+	if builtin := builtins[node.value] {
+		return builtin
+	}
 	val := env.get(node.value)
 	return val or { new_error('identifier not found', node.value) }
 }

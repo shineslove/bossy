@@ -4,6 +4,8 @@ import lexer
 import object
 import parser
 
+type StringOrInt = string | int
+
 struct EvalIntTests {
 	input    string
 	expected int
@@ -42,6 +44,48 @@ struct LetTests {
 struct FunctionTests {
 	input    string
 	expected int
+}
+
+struct BuiltinTests {
+	input    string
+	expected StringOrInt
+}
+
+fn test_builtin_funcs() {
+	tsts := [
+		BuiltinTests{
+			input:    'len("")'
+			expected: 0
+		},
+		BuiltinTests{
+			input:    'len("four")'
+			expected: 4
+		},
+		BuiltinTests{
+			input:    'len("hello world")'
+			expected: 11
+		},
+		BuiltinTests{
+			input:    'len(1)'
+			expected: "argument to 'len' not supported, got: integer"
+		},
+		BuiltinTests{
+			input:    'len("one", "two")'
+			expected: 'wrong number of arguments. got: 2, want: 1'
+		},
+	]
+	for tst in tsts {
+		evaluated := eval_test(tst.input)?
+		match tst.expected {
+			string {
+				err_obj := evaluated as object.Err
+				assert err_obj.message == tst.expected, 'wrong error message. expected: ${tst.expected} got: ${err_obj.message}'
+			}
+			int {
+				int_object_test(evaluated, tst.expected)
+			}
+		}
+	}
 }
 
 fn test_string_concat() {

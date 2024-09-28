@@ -10,9 +10,21 @@ pub enum Obj {
 	error
 	function
 	string
+	builtin
 }
 
-pub type Object = Null | String | Integer | Boolean | Return | Err | Function
+pub type BuiltinFunction = fn (args ...Object) Object
+
+pub struct Builtin {
+pub:
+	func BuiltinFunction @[required]
+}
+
+fn (bu Builtin) str() string {
+	return 'builtin function'
+}
+
+pub type Object = Null | Builtin | String | Integer | Boolean | Return | Err | Function
 
 pub fn (ob Object) kind() Obj {
 	return match ob {
@@ -23,6 +35,7 @@ pub fn (ob Object) kind() Obj {
 		Err { .error }
 		Function { .function }
 		String { .string }
+		Builtin { .builtin }
 	}
 }
 
@@ -35,6 +48,7 @@ pub fn (ob Object) inspect() string {
 		Err { ob.str() }
 		Function { ob.str() }
 		String { ob.str() }
+		Builtin { ob.str() }
 	}
 }
 

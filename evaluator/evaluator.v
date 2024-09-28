@@ -131,6 +131,7 @@ pub fn eval(node ast.Node, mut env object.Environment) ?object.Object {
 							return args[0]
 						}
 					}
+					// doing a return here breaks things 
 					apply_function(function, args)
 				}
 				ast.StringLiteral {

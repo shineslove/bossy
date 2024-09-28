@@ -44,6 +44,13 @@ struct FunctionTests {
 	expected int
 }
 
+fn test_string_concat() {
+	input := '"Hello" + " " + "World!"'
+	evaluated := eval_test(input)
+	st := evaluated as object.String
+	assert st.value == 'Hello World!', 'String has wrong value. got: ${st.value}'
+}
+
 fn test_string_literal() {
 	input := '"Hello World!"'
 	evaluated := eval_test(input)
@@ -166,6 +173,10 @@ fn test_error_handling() {
 		ErrorTests{
 			input:            'foobar'
 			expected_message: 'identifier not found: foobar'
+		},
+		ErrorTests{
+			input:            '"Hello" - "World"'
+			expected_message: 'unknown operator: string - string'
 		},
 	]
 	for tst in tsts {

@@ -208,6 +208,9 @@ fn eval_program(prog ast.Program, mut env object.Environment) ?object.Object {
 }
 
 fn eval_infix_expression(operator string, left object.Object, right object.Object) object.Object {
+	if left.kind() == .string && right.kind() == .string {
+		return eval_string_infix_expression(operator, left, right)
+	}
 	if left.kind() == .integer && right.kind() == .integer {
 		return eval_integer_infix_expression(operator, left, right)
 	}
@@ -218,6 +221,21 @@ fn eval_infix_expression(operator string, left object.Object, right object.Objec
 		'==' { native_bool_to_boolean_object(left == right) }
 		'!=' { native_bool_to_boolean_object(left != right) }
 		else { new_error('unknown operator', '${left.kind()} ${operator} ${right.kind()}') }
+	}
+}
+
+fn eval_string_infix_expression(operator string, left object.Object, right object.Object) object.Object {
+	return match operator {
+		'+' {
+			left_val := (left as object.String).value
+			right_val := (right as object.String).value
+			object.String{
+				value: left_val + right_val
+			}
+		}
+		else {
+			new_error('unknown operator', '${left.kind()} ${operator} ${right.kind()}')
+		}
 	}
 }
 

@@ -11,6 +11,24 @@ pub enum Obj {
 	function
 	string
 	builtin
+	array
+}
+
+pub struct Array {
+pub mut:
+	elements []Object
+}
+
+fn (arr Array) str() string {
+	mut output := ''
+	mut elements := []string{}
+	for el in arr.elements {
+		elements << el.inspect()
+	}
+	output += '['
+	output += elements.join(', ')
+	output += ']'
+	return output
 }
 
 pub type BuiltinFunction = fn (args ...Object) Object
@@ -24,7 +42,7 @@ fn (bu Builtin) str() string {
 	return 'builtin function'
 }
 
-pub type Object = Null | Builtin | String | Integer | Boolean | Return | Err | Function
+pub type Object = Null | Array | Builtin | String | Integer | Boolean | Return | Err | Function
 
 pub fn (ob Object) kind() Obj {
 	return match ob {
@@ -36,6 +54,7 @@ pub fn (ob Object) kind() Obj {
 		Function { .function }
 		String { .string }
 		Builtin { .builtin }
+		Array { .array }
 	}
 }
 
@@ -49,6 +68,7 @@ pub fn (ob Object) inspect() string {
 		Function { ob.str() }
 		String { ob.str() }
 		Builtin { ob.str() }
+		Array { ob.str() }
 	}
 }
 

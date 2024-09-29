@@ -131,11 +131,29 @@ pub fn eval(node ast.Node, mut env object.Environment) ?object.Object {
 							return args[0]
 						}
 					}
-					// doing a return here breaks things 
+					// doing a return here breaks things
 					apply_function(function, args)
 				}
 				ast.StringLiteral {
 					return_obj(object.String{ value: node.value })
+				}
+				ast.ArrayLiteral {
+					elements := eval_expressions(node.elements, mut env)
+					if elements.len == 1 && is_error(elements[0]) {
+						return elements[0]
+					}
+					return_obj(object.Array{ elements: elements })
+				}
+				ast.IndexExpression {
+					left := eval(node.left, mut env)
+					if is_error(left) {
+						return left
+					}
+					index := eval(node.index, mut env)
+					if is_error(index) {
+						return index
+					}
+					eval_index_expression(left?, index?)
 				}
 			}
 		}
@@ -373,4 +391,21 @@ fn eval_statements(stmts []ast.Statement, mut env object.Environment) ?object.Ob
 		}
 	}
 	return result
+}
+
+fn eval_index_expression(left object.Object, index object.Object) object.Object {
+	if left.kind() == .array && index.kind() == .integer {
+		return eval_array_index_expression(left, index)
+	}
+	return new_error('index operator not supported', left.kind().str())
+}
+
+fn eval_array_index_expression(array object.Object, index object.Object) object.Object {
+	arr_obj := array as object.Array
+	idx := (index as object.Integer).value
+	max := arr_obj.elements.len - 1
+	if idx < 0 || idx > max {
+		return null
+	}
+	return arr_obj.elements[idx]
 }

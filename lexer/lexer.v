@@ -206,6 +206,18 @@ pub fn (mut lex Lexer) next_token() TokenType {
 				@type: .string
 			}
 		}
+		`[` {
+			TokenType{
+				value: lex.ch.str()
+				@type: .lbracket
+			}
+		}
+		`]` {
+			TokenType{
+				value: lex.ch.str()
+				@type: .rbracket
+			}
+		}
 		0 {
 			TokenType{
 				value: lex.ch.str()

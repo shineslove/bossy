@@ -16,6 +16,8 @@ type InfixParseFunc = fn (ast.Expression) ast.Expression
 
 type InfixParseFuncOptional = fn (ast.Expression) ?ast.Expression
 
+type Infixes = InfixParseFunc | InfixParseFuncOptional
+
 enum Precedence {
 	_
 	lowest
@@ -25,6 +27,7 @@ enum Precedence {
 	product
 	prefix
 	call
+	index
 }
 
 const precedences = {
@@ -37,6 +40,7 @@ const precedences = {
 	token.Token.slash:    Precedence.product
 	token.Token.asterisk: Precedence.product
 	token.Token.lparen:   Precedence.call
+	token.Token.lbracket: Precedence.index
 }
 
 // should've read the docs, just needed to return a
@@ -62,11 +66,12 @@ fn (mut p Parser) find_prefix_parse(tok token.Token) ?Prefixes {
 		.@if { p.parse_if_expression }
 		.function { p.parse_function_literal }
 		.string { p.parse_string_literal }
+		.lbracket { p.parse_array_literal }
 		else { none }
 	}
 }
 
-fn (mut p Parser) find_infix_parse(tok token.Token) ?InfixParseFunc {
+fn (mut p Parser) find_infix_parse(tok token.Token) ?Infixes {
 	return match tok {
 		.plus { p.parse_infix_expression }
 		.minus { p.parse_infix_expression }
@@ -77,6 +82,7 @@ fn (mut p Parser) find_infix_parse(tok token.Token) ?InfixParseFunc {
 		.lt { p.parse_infix_expression }
 		.gt { p.parse_infix_expression }
 		.lparen { p.parse_call_expression }
+		.lbracket { p.parse_index_expression }
 		else { none }
 	}
 }
@@ -104,6 +110,46 @@ pub fn Parser.new(lex lexer.Lexer) &Parser {
 	return par
 }
 
+fn (mut p Parser) parse_array_literal() ?ast.Expression {
+	mut array := ast.ArrayLiteral{
+		token: p.curr_token
+	}
+	array.elements = p.parse_expression_list(.rbracket)?
+	return array
+}
+
+fn (mut p Parser) parse_index_expression(left ast.Expression) ?ast.Expression {
+	mut exp := ast.IndexExpression{
+		token: p.curr_token
+		left:  left
+	}
+	p.next_token()
+	exp.index = p.parse_expression(.lowest)?
+	if !p.expect_peek(.rbracket) {
+		return none
+	}
+	return exp
+}
+
+fn (mut p Parser) parse_expression_list(end token.Token) ?[]ast.Expression {
+	mut list := []ast.Expression{}
+	if p.peek_token_is(end) {
+		p.next_token()
+		return list
+	}
+	p.next_token()
+	list << p.parse_expression(.lowest)?
+	for p.peek_token_is(.comma) {
+		p.next_token()
+		p.next_token()
+		list << p.parse_expression(.lowest)?
+	}
+	if !p.expect_peek(end) {
+		return none
+	}
+	return list
+}
+
 fn (mut p Parser) parse_string_literal() ast.Expression {
 	return ast.StringLiteral{
 		token: p.curr_token
@@ -116,7 +162,7 @@ fn (mut p Parser) parse_call_expression(function ast.Expression) ast.Expression 
 		token:    p.curr_token
 		function: function
 	}
-	exp.arguments = p.parse_call_arguments()
+	exp.arguments = p.parse_expression_list(.rparen)
 	return exp
 }
 
@@ -342,7 +388,10 @@ fn (mut p Parser) parse_expression(precedence Precedence) ?ast.Expression {
 	for !p.peek_token_is(.semicolon) && int(precedence) < int(p.peek_precedence()) {
 		infix := p.find_infix_parse(p.peek_token.@type) or { return left_exp }
 		p.next_token()
-		left_exp = infix(left_exp)
+		left_exp = match infix {
+			InfixParseFunc { infix(left_exp) }
+			InfixParseFuncOptional { infix(left_exp)? }
+		}
 	}
 	return left_exp
 }

@@ -194,6 +194,51 @@ fn (sl StringLiteral) str() string {
 	return sl.token.value
 }
 
+pub struct ArrayLiteral {
+pub:
+	token token.TokenType
+pub mut:
+	elements []Expression
+}
+
+fn (ar ArrayLiteral) token_literal() string {
+	return ar.token.value
+}
+
+fn (ar ArrayLiteral) str() string {
+	mut output := ''
+	mut elements := []string{}
+	for el in ar.elements {
+		elements << el.str()
+	}
+	output += '['
+	output += elements.join(', ')
+	output += ']'
+	return output
+}
+
+pub struct IndexExpression {
+pub:
+	token token.TokenType
+	left  Expression
+pub mut:
+	index Expression
+}
+
+fn (ien IndexExpression) token_literal() string {
+	return ien.token.value
+}
+
+fn (ien IndexExpression) str() string {
+	mut output := ''
+	output += '('
+	output += ien.left.str()
+	output += '['
+	output += ien.index.str()
+	output += '])'
+	return output
+}
+
 pub type Expression = Identifier
 	| IntegerLiteral
 	| PrefixExpression
@@ -203,6 +248,8 @@ pub type Expression = Identifier
 	| FunctionLiteral
 	| CallExpression
 	| StringLiteral
+	| ArrayLiteral
+	| IndexExpression
 
 pub fn (exp Expression) token_literal() string {
 	return match exp {
@@ -215,6 +262,8 @@ pub fn (exp Expression) token_literal() string {
 		FunctionLiteral { exp.token_literal() }
 		CallExpression { exp.token_literal() }
 		StringLiteral { exp.token_literal() }
+		ArrayLiteral { exp.token_literal() }
+		IndexExpression { exp.token_literal() }
 	}
 }
 
@@ -229,6 +278,8 @@ pub fn (exp Expression) str() string {
 		FunctionLiteral { '${exp.str()}' }
 		CallExpression { '${exp.str()}' }
 		StringLiteral { '${exp.str()}' }
+		ArrayLiteral { '${exp.str()}' }
+		IndexExpression { '${exp.str()}' }
 	}
 }
 

@@ -51,6 +51,78 @@ struct BuiltinTests {
 	expected StringOrInt
 }
 
+struct ArrayIndexTests {
+	input    string
+	expected ?int
+}
+
+fn test_array_index_expressions() {
+	tsts := [
+		ArrayIndexTests{
+			input:    '[1, 2, 3][0]'
+			expected: 1
+		},
+		ArrayIndexTests{
+			input:    '[1, 2, 3][1]'
+			expected: 2
+		},
+		ArrayIndexTests{
+			input:    '[1, 2, 3][2]'
+			expected: 3
+		},
+		ArrayIndexTests{
+			input:    'let i = 0; [1][i];'
+			expected: 1
+		},
+		ArrayIndexTests{
+			input:    '[1, 2, 3][1 + 1];'
+			expected: 3
+		},
+		ArrayIndexTests{
+			input:    'let myArray = [1, 2, 3]; myArray[2];'
+			expected: 3
+		},
+		ArrayIndexTests{
+			input:    'let myArray = [1, 2, 3]; myArray[0] + myArray[1] + myArray[2];'
+			expected: 6
+		},
+		ArrayIndexTests{
+			input:    'let myArray = [1, 2, 3]; let i = myArray[0]; myArray[i]'
+			expected: 2
+		},
+		ArrayIndexTests{
+			input:    '[1, 2, 3][3]'
+			expected: none
+		},
+		ArrayIndexTests{
+			input:    '[1, 2, 3][-1]'
+			expected: none
+		},
+	]
+	for tst in tsts {
+		evaluated := eval_test(tst.input)
+		int_opt := tst.expected
+		if int_opt != none {
+			integer := int_opt as int
+			int_object_test(evaluated or {
+				panic('arr idx didnt work bud -> val: ${evaluated} opt: ${int_opt}')
+			}, integer)
+		} else {
+			null_object_test(evaluated?)
+		}
+	}
+}
+
+fn test_array_literals() {
+	input := '[1, 2 * 2, 3 + 3]'
+	evaluated := eval_test(input)?
+	result := evaluated as object.Array
+	assert result.elements.len == 3, 'array has wrong num of elements got: ${result.elements.len}'
+	assert int_object_test(result.elements[0], 1)
+	assert int_object_test(result.elements[1], 4)
+	assert int_object_test(result.elements[2], 6)
+}
+
 fn test_builtin_funcs() {
 	tsts := [
 		BuiltinTests{
@@ -267,7 +339,7 @@ fn test_if_else_expressions() {
 		if int_opt != none {
 			integer := int_opt as int
 			int_object_test(evaluated or {
-				panic('didnt work bud -> val: ${evaluated} opt: ${int_opt}')
+				panic('ifs didnt work bud -> val: ${evaluated} opt: ${int_opt}')
 			}, integer)
 		} else {
 			null_object_test(evaluated?)

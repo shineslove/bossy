@@ -65,6 +65,32 @@ fn check_boolean(exp ast.Expression, value bool) bool {
 	return true
 }
 
+fn test_parsing_index_expressions() {
+	input := 'myArray[1 + 1]'
+	lex := lexer.Lexer.new(input)
+	mut par := Parser.new(lex)
+	prog := par.parse_program()
+	check_parser_errors(par)
+	stmt := prog.statements[0] as ast.ExpressionStatement
+	index_exp := stmt.expression as ast.IndexExpression
+	assert check_identifier(index_exp.left, 'myArray')
+	assert infix_expression_test(index_exp.index, 1, '+', 1)
+}
+
+fn test_parsing_array_literals() {
+	input := '[1, 2 * 2, 3 + 3]'
+	lex := lexer.Lexer.new(input)
+	mut par := Parser.new(lex)
+	prog := par.parse_program()
+	check_parser_errors(par)
+	stmt := prog.statements[0] as ast.ExpressionStatement
+	array := stmt.expression as ast.ArrayLiteral
+	assert array.elements.len == 3, 'len(array.elements) not 3. got: ${array.elements.len}'
+	check_integer_literal(array.elements[0], 1)
+	infix_expression_test(array.elements[1], 2, '*', 2)
+	infix_expression_test(array.elements[2], 3, '+', 3)
+}
+
 fn test_string_literal_expression() {
 	input := '"hello world"'
 	lex := lexer.Lexer.new(input)
@@ -168,6 +194,8 @@ fn test_operator_precedence_parsing() {
 		['2 / (5 + 5)', '(2 / (5 + 5))'],
 		['-(5 + 5)', '(-(5 + 5))'],
 		['!(true == true)', '(!(true == true))'],
+		['a * [1, 2, 3, 4][b * c] * d', '((a * ([1, 2, 3, 4][(b * c)])) * d)'],
+		['add(a * b[2], b[1], 2 * [1, 2][1])', 'add((a * (b[2])), (b[1]), (2 * ([1, 2][1])))'],
 	])
 	for tst in tsts {
 		lex := lexer.Lexer.new(tst['input'])

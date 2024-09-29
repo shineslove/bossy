@@ -114,6 +114,7 @@ fn test_literal_tokens() {
 	literal_input := '
 	    "foobar"
 	    "foo bar"
+	    [1, 2];
 	'
 	literal_tests := [
 		TokenTests{
@@ -123,6 +124,30 @@ fn test_literal_tokens() {
 		TokenTests{
 			expected_type:    .string
 			expected_literal: 'foo bar'
+		},
+		TokenTests{
+			expected_type:    .lbracket
+			expected_literal: '['
+		},
+		TokenTests{
+			expected_type:    .integer
+			expected_literal: '1'
+		},
+		TokenTests{
+			expected_type:    .comma
+			expected_literal: ','
+		},
+		TokenTests{
+			expected_type:    .integer
+			expected_literal: '2'
+		},
+		TokenTests{
+			expected_type:    .rbracket
+			expected_literal: ']'
+		},
+		TokenTests{
+			expected_type:    .semicolon
+			expected_literal: ';'
 		},
 	]
 	mut literal_lex := Lexer.new(literal_input)

@@ -28,6 +28,8 @@ pub enum Token {
 	@return
 	eof
 	string
+	lbracket
+	rbracket
 	illegal
 }
 

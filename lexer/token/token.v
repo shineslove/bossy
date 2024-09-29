@@ -30,6 +30,7 @@ pub enum Token {
 	string
 	lbracket
 	rbracket
+	colon
 	illegal
 }
 

@@ -239,6 +239,29 @@ fn (ien IndexExpression) str() string {
 	return output
 }
 
+pub struct HashLiteral {
+pub:
+	token token.TokenType
+pub mut:
+	pairs map[string]Expression
+}
+
+fn (hl HashLiteral) token_literal() string {
+	return hl.token.value
+}
+
+fn (hl HashLiteral) str() string {
+	mut output := ''
+	mut pairs := []string{}
+	for key, val in hl.pairs {
+		pairs << '${key.str()}:${val.str()}'
+	}
+	output += '{'
+	output += pairs.join(', ')
+	output += '}'
+	return output
+}
+
 pub type Expression = Identifier
 	| IntegerLiteral
 	| PrefixExpression
@@ -250,6 +273,7 @@ pub type Expression = Identifier
 	| StringLiteral
 	| ArrayLiteral
 	| IndexExpression
+	| HashLiteral
 
 pub fn (exp Expression) token_literal() string {
 	return match exp {
@@ -264,6 +288,7 @@ pub fn (exp Expression) token_literal() string {
 		StringLiteral { exp.token_literal() }
 		ArrayLiteral { exp.token_literal() }
 		IndexExpression { exp.token_literal() }
+		HashLiteral { exp.token_literal() }
 	}
 }
 
@@ -280,6 +305,7 @@ pub fn (exp Expression) str() string {
 		StringLiteral { '${exp.str()}' }
 		ArrayLiteral { '${exp.str()}' }
 		IndexExpression { '${exp.str()}' }
+		HashLiteral { '${exp.str()}' }
 	}
 }
 

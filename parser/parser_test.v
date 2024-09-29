@@ -65,6 +65,63 @@ fn check_boolean(exp ast.Expression, value bool) bool {
 	return true
 }
 
+fn test_parsing_hash_literals_with_expressions() {
+	input := '{"one": 0 + 1, "two": 10 - 8, "three": 15 / 5}'
+	lex := lexer.Lexer.new(input)
+	mut par := Parser.new(lex)
+	prog := par.parse_program()
+	check_parser_errors(par)
+	stmt := prog.statements[0] as ast.ExpressionStatement
+	hash_lit := stmt.expression as ast.HashLiteral
+	assert hash_lit.pairs.len == 3, 'hash pairs has wrong length. got: ${hash_lit.pairs.len}'
+	tsts := {
+		'one':   fn (e ast.Expression) bool {
+			return infix_expression_test(e, 0, '+', 1)
+		}
+		'two':   fn (e ast.Expression) bool {
+			return infix_expression_test(e, 10, '-', 8)
+		}
+		'three': fn (e ast.Expression) bool {
+			return infix_expression_test(e, 15, '/', 5)
+		}
+	}
+	for key, val in hash_lit.pairs {
+		func_test := tsts[key]
+		assert func_test(val)
+	}
+}
+
+fn test_parsing_empty_hash_literal() {
+	input := '{}'
+	lex := lexer.Lexer.new(input)
+	mut par := Parser.new(lex)
+	prog := par.parse_program()
+	check_parser_errors(par)
+	stmt := prog.statements[0] as ast.ExpressionStatement
+	hash_exp := stmt.expression as ast.HashLiteral
+	assert hash_exp.pairs.len == 0, 'hash pairs has wrong length. got: ${hash_exp.pairs.len}'
+}
+
+fn test_parsing_hash_literals_string_keys() {
+	input := '{"one": 1, "two": 2, "three": 3}'
+	lex := lexer.Lexer.new(input)
+	mut par := Parser.new(lex)
+	prog := par.parse_program()
+	check_parser_errors(par)
+	stmt := prog.statements[0] as ast.ExpressionStatement
+	hash_exp := stmt.expression as ast.HashLiteral
+	assert hash_exp.pairs.len == 3, 'hash pairs has wrong length. got: ${hash_exp.pairs.len}'
+	expected := {
+		'one':   1
+		'two':   2
+		'three': 3
+	}
+	for key, val in hash_exp.pairs {
+		expected_value := expected[key]
+		assert check_integer_literal(val, expected_value)
+	}
+}
+
 fn test_parsing_index_expressions() {
 	input := 'myArray[1 + 1]'
 	lex := lexer.Lexer.new(input)
@@ -86,9 +143,9 @@ fn test_parsing_array_literals() {
 	stmt := prog.statements[0] as ast.ExpressionStatement
 	array := stmt.expression as ast.ArrayLiteral
 	assert array.elements.len == 3, 'len(array.elements) not 3. got: ${array.elements.len}'
-	check_integer_literal(array.elements[0], 1)
-	infix_expression_test(array.elements[1], 2, '*', 2)
-	infix_expression_test(array.elements[2], 3, '+', 3)
+	assert check_integer_literal(array.elements[0], 1)
+	assert infix_expression_test(array.elements[1], 2, '*', 2)
+	assert infix_expression_test(array.elements[2], 3, '+', 3)
 }
 
 fn test_string_literal_expression() {

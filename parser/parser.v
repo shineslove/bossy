@@ -67,6 +67,7 @@ fn (mut p Parser) find_prefix_parse(tok token.Token) ?Prefixes {
 		.function { p.parse_function_literal }
 		.string { p.parse_string_literal }
 		.lbracket { p.parse_array_literal }
+		.lbrace { p.parse_hash_literal }
 		else { none }
 	}
 }
@@ -108,6 +109,29 @@ pub fn Parser.new(lex lexer.Lexer) &Parser {
 	par.next_token()
 	par.next_token()
 	return par
+}
+
+fn (mut p Parser) parse_hash_literal() ?ast.Expression {
+	mut hash_lit := ast.HashLiteral{
+		token: p.curr_token
+	}
+	for !p.peek_token_is(.rbrace) {
+		p.next_token()
+		key := p.parse_expression(.lowest)?
+		if !p.expect_peek(.colon) {
+			return none
+		}
+		p.next_token()
+		val := p.parse_expression(.lowest)?
+		hash_lit.pairs[key.str()] = val
+		if !p.peek_token_is(.rbrace) && !p.expect_peek(.comma) {
+			return none
+		}
+	}
+	if !p.expect_peek(.rbrace) {
+		return none
+	}
+	return hash_lit
 }
 
 fn (mut p Parser) parse_array_literal() ?ast.Expression {

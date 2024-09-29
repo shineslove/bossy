@@ -218,6 +218,12 @@ pub fn (mut lex Lexer) next_token() TokenType {
 				@type: .rbracket
 			}
 		}
+		`:` {
+			TokenType{
+				value: lex.ch.str()
+				@type: .colon
+			}
+		}
 		0 {
 			TokenType{
 				value: lex.ch.str()

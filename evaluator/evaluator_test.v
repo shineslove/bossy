@@ -4,7 +4,7 @@ import lexer
 import object
 import parser
 
-type StringOrInt = string | int
+type LocalAny = string | int | []int
 
 struct EvalIntTests {
 	input    string
@@ -48,7 +48,7 @@ struct FunctionTests {
 
 struct BuiltinTests {
 	input    string
-	expected StringOrInt
+	expected ?LocalAny
 }
 
 struct ArrayIndexTests {
@@ -145,16 +145,76 @@ fn test_builtin_funcs() {
 			input:    'len("one", "two")'
 			expected: 'wrong number of arguments. got: 2, want: 1'
 		},
+		BuiltinTests{
+			input:    'len([1, 2, 3])'
+			expected: 3
+		},
+		BuiltinTests{
+			input:    'len([])'
+			expected: 0
+		},
+		BuiltinTests{
+			input:    'first([1, 2, 3])'
+			expected: 1
+		},
+		BuiltinTests{
+			input:    'first([])'
+			expected: none
+		},
+		BuiltinTests{
+			input:    'first(1)'
+			expected: "argument to 'first' must be array, got: integer"
+		},
+		BuiltinTests{
+			input:    'last([1, 2, 3])'
+			expected: 3
+		},
+		BuiltinTests{
+			input:    'last([])'
+			expected: none
+		},
+		BuiltinTests{
+			input:    'last(1)'
+			expected: "argument to 'last' must be array, got: integer"
+		},
+		BuiltinTests{
+			input:    'rest([1, 2, 3])'
+			expected: [2, 3]
+		},
+		BuiltinTests{
+			input:    'rest([])'
+			expected: none
+		},
+		BuiltinTests{
+			input:    'push([], 1)'
+			expected: [1]
+		},
+		BuiltinTests{
+			input:    'push(1, 1)'
+			expected: "argument to 'push' must be array, got: integer"
+		},
 	]
 	for tst in tsts {
 		evaluated := eval_test(tst.input)?
-		match tst.expected {
+		if tst.expected == none {
+			null_object_test(evaluated)
+			continue
+		}
+		expected := tst.expected?
+		match expected {
 			string {
 				err_obj := evaluated as object.Err
-				assert err_obj.message == tst.expected, 'wrong error message. expected: ${tst.expected} got: ${err_obj.message}'
+				assert err_obj.message == expected, 'wrong error message. expected: ${expected} got: ${err_obj.message}'
 			}
 			int {
-				int_object_test(evaluated, tst.expected)
+				int_object_test(evaluated, expected)
+			}
+			[]int {
+				array := evaluated as object.Array
+				assert array.elements.len == expected.len, 'array has wrong num of elements got: ${array.elements.len}'
+				for idx, elem in expected {
+					assert int_object_test(array.elements[idx], elem)
+				}
 			}
 		}
 	}

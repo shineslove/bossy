@@ -139,8 +139,11 @@ pub fn eval(node ast.Node, mut env object.Environment) ?object.Object {
 				}
 				ast.ArrayLiteral {
 					elements := eval_expressions(node.elements, mut env)
-					if elements.len == 1 && is_error(elements[0]) {
-						return elements[0]
+					if elements.len > 0 {
+						// happened here again, accessing empty array
+						if elements.len == 1 && is_error(elements[0]) {
+							return elements[0]
+						}
 					}
 					return_obj(object.Array{ elements: elements })
 				}

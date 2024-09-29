@@ -5,7 +5,7 @@ import strings
 import lexer
 import parser
 import evaluator
-import evaluator.object
+import object
 
 // R.E.P.L for outputting 'Monkey'
 pub fn start() {

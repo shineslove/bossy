@@ -239,11 +239,17 @@ fn (ien IndexExpression) str() string {
 	return output
 }
 
+pub struct HashExpressionPair {
+pub:
+	key   Expression
+	value Expression
+}
+
 pub struct HashLiteral {
 pub:
 	token token.TokenType
 pub mut:
-	pairs map[string]Expression
+	pairs []HashExpressionPair
 }
 
 fn (hl HashLiteral) token_literal() string {
@@ -253,8 +259,8 @@ fn (hl HashLiteral) token_literal() string {
 fn (hl HashLiteral) str() string {
 	mut output := ''
 	mut pairs := []string{}
-	for key, val in hl.pairs {
-		pairs << '${key.str()}:${val.str()}'
+	for val in hl.pairs {
+		pairs << '${val.key.str()}:${val.value.str()}'
 	}
 	output += '{'
 	output += pairs.join(', ')

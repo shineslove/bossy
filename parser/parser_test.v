@@ -85,9 +85,9 @@ fn test_parsing_hash_literals_with_expressions() {
 			return infix_expression_test(e, 15, '/', 5)
 		}
 	}
-	for key, val in hash_lit.pairs {
-		func_test := tsts[key]
-		assert func_test(val)
+	for pair in hash_lit.pairs {
+		func_test := tsts[pair.key.str()]
+		assert func_test(pair.value)
 	}
 }
 
@@ -116,9 +116,9 @@ fn test_parsing_hash_literals_string_keys() {
 		'two':   2
 		'three': 3
 	}
-	for key, val in hash_exp.pairs {
-		expected_value := expected[key]
-		assert check_integer_literal(val, expected_value)
+	for pair in hash_exp.pairs {
+		expected_value := expected[pair.key.str()]
+		assert check_integer_literal(pair.value, expected_value)
 	}
 }
 

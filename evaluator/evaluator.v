@@ -158,6 +158,9 @@ pub fn eval(node ast.Node, mut env object.Environment) ?object.Object {
 					}
 					eval_index_expression(left?, index?)
 				}
+				ast.HashLiteral {
+					eval_hash_literal(node, mut env)
+				}
 			}
 		}
 		ast.Statement {
@@ -193,6 +196,31 @@ pub fn eval(node ast.Node, mut env object.Environment) ?object.Object {
 		ast.BlockStatement {
 			eval_block_statement(node, mut env)
 		}
+	}
+}
+
+fn eval_hash_literal(node ast.HashLiteral, mut env object.Environment) ?object.Object {
+	mut pairs := map[u64]object.HashPair{}
+	for pair in node.pairs {
+		key := eval(pair.key, mut env)?
+		if is_error(key) {
+			return key
+		}
+		if !object.hashable(key) {
+			return new_error('unusable as hash key', key.kind().str())
+		}
+		value := eval(pair.value, mut env)?
+		if is_error(value) {
+			return value
+		}
+		hashed := key.hash_key()
+		pairs[hashed] = object.HashPair{
+			key:   key
+			value: value
+		}
+	}
+	return object.Hash{
+		pairs: pairs
 	}
 }
 
@@ -400,7 +428,19 @@ fn eval_index_expression(left object.Object, index object.Object) object.Object 
 	if left.kind() == .array && index.kind() == .integer {
 		return eval_array_index_expression(left, index)
 	}
+	if left.kind() == .hash {
+		return eval_hash_index_expression(left, index)
+	}
 	return new_error('index operator not supported', left.kind().str())
+}
+
+fn eval_hash_index_expression(hashy object.Object, index object.Object) object.Object {
+	hash_obj := hashy as object.Hash
+	if !object.hashable(index) {
+		return new_error('unusable as hash key', index.kind().str())
+	}
+	pair := hash_obj.pairs[index.hash_key()] or { return null }
+	return pair.value
 }
 
 fn eval_array_index_expression(array object.Object, index object.Object) object.Object {

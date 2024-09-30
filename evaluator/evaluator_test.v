@@ -56,6 +56,98 @@ struct ArrayIndexTests {
 	expected ?int
 }
 
+struct HashIndexTests {
+	input    string
+	expected ?int
+}
+
+fn test_hash_index_expression() {
+	tsts := [
+		HashIndexTests{
+			input:    '{"foo": 5}["foo"]'
+			expected: 5
+		},
+		HashIndexTests{
+			input:    '{"foo": 5}["bar"]'
+			expected: none
+		},
+		HashIndexTests{
+			input:    'let key = "foo"; {"foo": 5}[key]'
+			expected: 5
+		},
+		HashIndexTests{
+			input:    '{}["foo"]'
+			expected: none
+		},
+		HashIndexTests{
+			input:    '{5: 5}[5]'
+			expected: 5
+		},
+		HashIndexTests{
+			input:    '{true: 5}[true]'
+			expected: 5
+		},
+		HashIndexTests{
+			input:    '{false: 5}[false]'
+			expected: 5
+		},
+	]
+	for tst in tsts {
+		evaluated := eval_test(tst.input)?
+		integer := tst.expected
+		if integer == none {
+			null_object_test(evaluated)
+		} else {
+			int_object_test(evaluated, integer?)
+		}
+	}
+}
+
+fn test_hash_literals() {
+	input := '
+		let two = "two";
+		{
+			"one": 10 - 9,
+			two: 1 + 1,
+			"thr" + "ee": 6 / 2,
+			4: 4,
+			true: 5,
+			false: 6
+		}
+	'
+	evaluated := eval_test(input)?
+	result := evaluated as object.Hash
+	one := object.String{
+		value: 'one'
+	}.hash_key()
+	two := object.String{
+		value: 'two'
+	}.hash_key()
+	three := object.String{
+		value: 'three'
+	}.hash_key()
+	four := object.Integer{
+		value: 4
+	}.hash_key()
+	five := truth.hash_key()
+	six := falsy.hash_key()
+	expected := {
+		one:   1
+		two:   2
+		three: 3
+		four:  4
+		five:  5
+		six:   6
+	}
+	assert result.pairs.len == expected.len, 'Hash has wrong num of pairs. got: ${result.pairs.len}'
+	for expected_key, expected_val in expected {
+		pair := result.pairs[expected_key] or {
+			panic('no pair for given key in Pairs: ${expected_key}')
+		}
+		int_object_test(pair.value, expected_val)
+	}
+}
+
 fn test_array_index_expressions() {
 	tsts := [
 		ArrayIndexTests{
@@ -353,6 +445,10 @@ fn test_error_handling() {
 		ErrorTests{
 			input:            '"Hello" - "World"'
 			expected_message: 'unknown operator: string - string'
+		},
+		ErrorTests{
+			input:            '{"name": "Monkey"}[fn(x) { x }];'
+			expected_message: 'unusable as hash key: function'
 		},
 	]
 	for tst in tsts {

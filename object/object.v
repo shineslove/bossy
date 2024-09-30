@@ -1,5 +1,6 @@
 module object
 
+import hash
 import ast
 
 pub enum Obj {
@@ -12,6 +13,7 @@ pub enum Obj {
 	string
 	builtin
 	array
+	hash
 }
 
 pub struct Array {
@@ -42,7 +44,20 @@ fn (bu Builtin) str() string {
 	return 'builtin function'
 }
 
-pub type Object = Null | Array | Builtin | String | Integer | Boolean | Return | Err | Function
+pub fn hashable(ob Object) bool {
+	return ob in [String, Integer, Boolean]
+}
+
+pub type Object = Null
+	| Hash
+	| Array
+	| Builtin
+	| String
+	| Integer
+	| Boolean
+	| Return
+	| Err
+	| Function
 
 pub fn (ob Object) kind() Obj {
 	return match ob {
@@ -55,6 +70,7 @@ pub fn (ob Object) kind() Obj {
 		String { .string }
 		Builtin { .builtin }
 		Array { .array }
+		Hash { .hash }
 	}
 }
 
@@ -69,7 +85,45 @@ pub fn (ob Object) inspect() string {
 		String { ob.str() }
 		Builtin { ob.str() }
 		Array { ob.str() }
+		Hash { ob.str() }
 	}
+}
+
+pub fn (ob Object) hash_key() u64 {
+	return match ob {
+		Integer { ob.hash_key() }
+		Boolean { ob.hash_key() }
+		String { ob.hash_key() }
+		else { panic("you can't do this buddy!!") }
+	}
+}
+
+struct HashKey {
+	kind  Obj
+	value Object
+}
+
+pub struct HashPair {
+pub:
+	key   Object
+	value Object
+}
+
+pub struct Hash {
+pub:
+	pairs map[u64]HashPair
+}
+
+fn (hh Hash) str() string {
+	mut output := ''
+	mut pairs := []string{}
+	for _, pair in hh.pairs {
+		pairs << '${pair.key.inspect()}: ${pair.value.inspect()}'
+	}
+	output += '{'
+	output += pairs.join(', ')
+	output += '}'
+	return output
 }
 
 pub struct String {
@@ -81,6 +135,10 @@ fn (st String) str() string {
 	return st.value.str()
 }
 
+pub fn (st String) hash_key() u64 {
+	return hash.sum64_string(HashKey{ kind: .string, value: st }.str(), 1_000)
+}
+
 pub struct Integer {
 pub:
 	value int
@@ -90,6 +148,10 @@ fn (itr Integer) str() string {
 	return itr.value.str()
 }
 
+pub fn (itr Integer) hash_key() u64 {
+	return hash.sum64_string(HashKey{ kind: .integer, value: itr }.str(), 1_000)
+}
+
 pub struct Boolean {
 pub:
 	value bool
@@ -97,6 +159,10 @@ pub:
 
 fn (boo Boolean) str() string {
 	return boo.value.str()
+}
+
+pub fn (boo Boolean) hash_key() u64 {
+	return hash.sum64_string(HashKey{ kind: .boolean, value: boo }.str(), 1_000)
 }
 
 pub struct Null {}

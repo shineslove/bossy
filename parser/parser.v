@@ -123,7 +123,10 @@ fn (mut p Parser) parse_hash_literal() ?ast.Expression {
 		}
 		p.next_token()
 		val := p.parse_expression(.lowest)?
-		hash_lit.pairs[key.str()] = val
+		hash_lit.pairs << ast.HashExpressionPair{
+			key:   key
+			value: val
+		}
 		if !p.peek_token_is(.rbrace) && !p.expect_peek(.comma) {
 			return none
 		}

@@ -90,4 +90,12 @@ const builtins = {
 			}
 		}
 	}
+	'puts':  object.Builtin{
+		func: fn (args ...object.Object) object.Object {
+			for arg in args {
+				println(arg.inspect())
+			}
+			return null
+		}
+	}
 }

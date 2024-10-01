@@ -1,5 +1,6 @@
 module repl
 
+import os
 import readline
 import strings
 import lexer
@@ -39,5 +40,21 @@ fn print_parser_errors(errors []string) {
 	println(' parser errors:')
 	for e in errors {
 		println('\t${e}\n')
+	}
+}
+
+pub fn evaluate_from_file(filename string) {
+	input := os.read_file(filename) or { '' }
+	mut env := object.Environment.new()
+	l := lexer.Lexer.new(input)
+	mut par := parser.Parser.new(l)
+	prog := par.parse_program()
+	if par.errors().len != 0 {
+		print_parser_errors(par.errors())
+		return
+	}
+	evaluated := evaluator.eval(prog, mut env)
+	if evaluated != none {
+		println('${evaluated.inspect()}\n')
 	}
 }

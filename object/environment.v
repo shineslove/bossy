@@ -29,8 +29,8 @@ pub fn (mut env Environment) set(name string, val Object) Object {
 	return val
 }
 
-pub fn new_enclosed_environment(outer &Environment) &Environment {
-	mut env := Environment.new()
-	env.outer = outer
-	return env
+pub fn (env Environment) new_enclosed_environment() &Environment {
+	mut e := Environment.new()
+	e.outer = &env
+	return e
 }

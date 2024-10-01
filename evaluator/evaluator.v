@@ -56,7 +56,7 @@ fn apply_function(fun object.Object, args []object.Object) ?object.Object {
 }
 
 fn extend_function_env(fun object.Function, args []object.Object) &object.Environment {
-	mut env := object.new_enclosed_environment(fun.env)
+	mut env := fun.env.new_enclosed_environment()
 	for param_idx, param in fun.parameters {
 		env.set(param.value, args[param_idx])
 	}
